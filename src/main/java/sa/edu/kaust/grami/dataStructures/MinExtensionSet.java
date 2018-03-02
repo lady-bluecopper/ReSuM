@@ -14,8 +14,6 @@
  */
 package sa.edu.kaust.grami.dataStructures;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
-
 /**
  * Stores and sorts the created extensions during the test for being canonical.
  * <p>
@@ -37,8 +35,8 @@ public class MinExtensionSet<NodeType, EdgeType> extends
 
 	private int size = 0;
 
-        public MinExtensionSet(final GThreadEnvironment<NodeType, EdgeType> tenv) {
-		super(tenv);
+        public MinExtensionSet() {
+		super();
 		forward = backward = this;
 	}
 

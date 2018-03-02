@@ -14,7 +14,6 @@
  */
 package sa.edu.kaust.grami.dataStructures;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
 import java.io.Serializable;
 
 /**
@@ -35,11 +34,6 @@ public class GSpanExtension<NodeType, EdgeType> implements
     public GSpanEdge<NodeType, EdgeType> edge;
     public DFSCode<NodeType, EdgeType> frag;
     transient GSpanExtension<NodeType, EdgeType> next;
-    private transient GThreadEnvironment<NodeType, EdgeType> tenv;
-
-    public GSpanExtension(final GThreadEnvironment<NodeType, EdgeType> tenv) {
-        this.tenv = tenv;
-    }
 
     /*
 	 * (non-Javadoc)
@@ -91,15 +85,7 @@ public class GSpanExtension<NodeType, EdgeType> implements
         return edge.hashCode();
     }
 
-    /**
-     * stores this extension to the given <code>target</code> environment, if
-     * possible
-     * @param target
-     */
-    public void release(final GThreadEnvironment<NodeType, EdgeType> target) {
-        if (target == tenv) {
-            target.push(this);
-        }
+    public void release() {
     }
 
     @Override

@@ -14,8 +14,6 @@
  */
 package eu.unitn.disi.db.resum.search;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
-import eu.unitn.disi.db.resum.multithread.LocalEnvironment;
 import eu.unitn.disi.db.resum.utilities.Settings;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -114,9 +112,6 @@ public class Algorithm<NodeType, EdgeType> implements
         HashSet<Integer> contains = new HashSet<Integer>();
         IntFrequency minFreq = new IntFrequency(Settings.frequency);
         
-        final LocalEnvironment<NodeType, EdgeType> env = LocalEnvironment.create();
-        final GThreadEnvironment<NodeType, EdgeType> tenv = (GThreadEnvironment<NodeType, EdgeType>) env.getThreadEnv(0);
-        
         for (Entry< Integer, HashMap<Integer, GNode>> ar : nodesByLabel.entrySet()) {
             int firstLabel = ar.getKey();
             contains.clear();
@@ -135,7 +130,7 @@ public class Algorithm<NodeType, EdgeType> implements
                             if (!freqEdgeLabels.contains(edgeLabel)) {
                                 continue;
                             }
-                            final GSpanEdge<NodeType, EdgeType> gedge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                            final GSpanEdge<NodeType, EdgeType> gedge = new GSpanEdge<NodeType, EdgeType>()
                                     .set(0, 1, labelA, (int) edgeLabel, labelB, 1, firstLabel, secondLabel);
 
                             if (!initials.containsKey(gedge)) {
@@ -145,7 +140,7 @@ public class Algorithm<NodeType, EdgeType> implements
 
                                 HPListGraph<NodeType, EdgeType> lg = new HPListGraph<NodeType, EdgeType>();
                                 gedge.addTo(lg);
-                                DFSCode<NodeType, EdgeType> code = new DFSCode<NodeType, EdgeType>(tenv, sortedFrequentLabels, singleGraph, null)
+                                DFSCode<NodeType, EdgeType> code = new DFSCode<NodeType, EdgeType>(sortedFrequentLabels, singleGraph, null)
                                         .set(lg, gedge, gedge, parents);
                                 initials.put(gedge, code);
                             }
@@ -188,9 +183,7 @@ public class Algorithm<NodeType, EdgeType> implements
 
     public Extender<NodeType, EdgeType> getExtender(final int threadIdx) {
         // configure mining chain
-        final LocalEnvironment<NodeType, EdgeType> env = LocalEnvironment.env(this);
-        final GThreadEnvironment<NodeType, EdgeType> tenv = (GThreadEnvironment<NodeType, EdgeType>) env.getThreadEnv(threadIdx);
-        final GSpanExtender<NodeType, EdgeType> extender = new GSpanExtender<NodeType, EdgeType>(tenv);
+        final GSpanExtender<NodeType, EdgeType> extender = new GSpanExtender<NodeType, EdgeType>();
         // from last steps (filters after child computation)
         MiningStep<NodeType, EdgeType> curFirst = extender;
         GenerationStep<NodeType, EdgeType> gen;
@@ -202,7 +195,7 @@ public class Algorithm<NodeType, EdgeType> implements
 
         // build generation chain
         GenerationPartialStep<NodeType, EdgeType> generationFirst = gen.getLast();
-        generationFirst = new RightMostExtension<NodeType, EdgeType>(generationFirst, tenv);
+        generationFirst = new RightMostExtension<NodeType, EdgeType>(generationFirst);
         // insert generation chain
         gen.setFirst(generationFirst);
         // insert mining chain

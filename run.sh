@@ -11,8 +11,8 @@ echo -e '\n\n'
 
 # Loading configurations for experiments
 echo '>> Loading config file config.cfg'
-source config.cfg
-cat config.cfg
+source config2.cfg
+cat config2.cfg
 
 unset datasets
 declare -A datasets
@@ -55,7 +55,7 @@ do
 
 	for num_users in ${funcs[*]}
 	do
-		# For num_users, fixed relevance different frequency
+		# For num_users, fixed relevance, varying frequency
 		if [[ ${experiments[0]} -eq "1" ]]; then
 			echo '-----------------------------'
 			echo '      Varying frequency 	   '
@@ -77,7 +77,7 @@ do
 				done
 			done
 		fi
-		# Single user, fixed frequency different relevance
+		# For num_users, fixed frequency, varying relevance
 		if [[ ${experiments[1]} -eq "1" ]]; then
 			echo '-----------------------------'
 			echo '      Varying relevance 	   '
@@ -97,17 +97,13 @@ do
 				done
 			done
 		fi
-		# Varying tasks - fixed frequency and fixed relevance - single case
+		# For num_users, fixed frequency and relevance, varying score
 		if [[ ${experiments[2]} -eq "1" ]]; then
 			echo '-----------------------------'
 			echo '        Varying scores 	   '
 			echo '-----------------------------'
 
-			mkdir -p $output_data/relevance
-			OUTPUT="$output_data/scores/${dataset}"
-			mkdir -p $OUTPUT
-
-			OUTPUT="$output_data/u${num_users}/scores"
+			OUTPUT="$output_data/u${num_users}/score"
 			mkdir -p $OUTPUT
 
 			for task in ${tasks[*]}
@@ -151,8 +147,8 @@ do
 				for task in ${tasks[*]}
 				do
 					WEIGHTFILEFOLDER="${input_data}/${dataset}/aposteriori"
-                    mkdir -p $WEIGHTFILEFOLDER
-                    TASKSUBFOLDER="$WEIGHTFILEFOLDER/T${task}"
+                    			mkdir -p $WEIGHTFILEFOLDER
+                    			TASKSUBFOLDER="$WEIGHTFILEFOLDER/T${task}"
 					mkdir -p $TASKSUBFOLDER
 
 					echo "Running command ..."

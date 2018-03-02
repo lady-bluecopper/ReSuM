@@ -14,8 +14,6 @@
  */
 package sa.edu.kaust.grami.dataStructures;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
-
 /**
  * Represents a possible extension used during the test for being canonical.
  * <p>
@@ -40,8 +38,8 @@ public class MinExtension<NodeType, EdgeType> extends
 
     int gEdgei;
 
-    public MinExtension(final GThreadEnvironment<NodeType, EdgeType> tenv) {
-        super(tenv);
+    public MinExtension() {
+        super();
     }
 
     private final int compareSameA(final MinExtension<NodeType, EdgeType> other) {

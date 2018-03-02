@@ -14,7 +14,6 @@
  */
 package eu.unitn.disi.db.resum.search;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
 import java.util.Collection;
 import java.util.TreeSet;
 
@@ -38,17 +37,14 @@ public class GSpanExtender<NodeType, EdgeType> extends
 	private MiningStep<NodeType, EdgeType> first;
 	private final Collection<Extension<NodeType, EdgeType>> dummy;
 	private Collection<SearchLatticeNode<NodeType, EdgeType>> children;
-        private final GThreadEnvironment<NodeType, EdgeType> tenv;
 
 	/**
 	 * creates a new empty Extender that is also the end of the mining chain
 	 * 
-         * @param tenv
 	 */
-	public GSpanExtender(final GThreadEnvironment<NodeType, EdgeType> tenv) {
+	public GSpanExtender() {
 		super(null);
 		first = this;
-                this.tenv = tenv;
 		dummy = new TreeSet<Extension<NodeType, EdgeType>>();
 	}
 
@@ -56,7 +52,7 @@ public class GSpanExtender<NodeType, EdgeType> extends
 	public void call(final SearchLatticeNode<NodeType, EdgeType> node, final Collection<Extension<NodeType, EdgeType>> extensions) {	
 		for (final Extension<NodeType, EdgeType> ext : extensions) {
         	 children.add(node.extend(ext));
-        	 ((GSpanExtension<NodeType, EdgeType>) ext).release(tenv);
+        	 ((GSpanExtension<NodeType, EdgeType>) ext).release();
 		}
 	}
 

@@ -91,20 +91,6 @@ public abstract class SearchLatticeNode<NodeType, EdgeType> implements
     }
 
     /**
-     * sets the thread index of the SearchLatticeNode
-     *
-     * @param threadIdx
-     */
-    public abstract void setThreadNumber(int threadIdx);
-
-    /**
-     * gets the thread index of the SearchLatticeNode
-     *
-     * @return the thread index
-     */
-    public abstract int getThreadNumber();
-
-    /**
      * @return the set <code>store</code>-value
      */
     public final BitSet getStoreValues() {

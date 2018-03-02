@@ -14,7 +14,6 @@
  */
 package sa.edu.kaust.grami.dataStructures;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
 import java.io.Serializable;
 
 /**
@@ -38,8 +37,6 @@ public class GSpanEdge<NodeType, EdgeType> implements
 
     private static final long serialVersionUID = 1L;
 
-    protected transient GThreadEnvironment<NodeType, EdgeType> tenv = null;
-
     protected int nodeA, nodeB;
 
     protected int labelA, labelB;
@@ -61,10 +58,6 @@ public class GSpanEdge<NodeType, EdgeType> implements
      */
     protected GSpanEdge<NodeType, EdgeType> next;
 
-    public GSpanEdge(final GThreadEnvironment<NodeType, EdgeType> tenv) {
-        this.tenv = tenv;
-    }
-
     /**
      * adds this edge to the given <code>graph</code>
      *
@@ -82,17 +75,8 @@ public class GSpanEdge<NodeType, EdgeType> implements
 
     @Override
     public GSpanEdge<NodeType, EdgeType> clone() {
-        return new GSpanEdge<NodeType, EdgeType>(tenv).set(nodeA, nodeB,
+        return new GSpanEdge<NodeType, EdgeType>().set(nodeA, nodeB,
                 labelA, edgeLabel, labelB, direction, ThelabelA, ThelabelB);
-    }
-
-    /**
-     * @param tenv
-     * @return a new GSpanEdge in the given environment
-     */
-    public GSpanEdge<NodeType, EdgeType> clone(
-            final GThreadEnvironment<NodeType, EdgeType> tenv) {
-        return tenv.getEdge(nodeA, nodeB, labelA, edgeLabel, labelB, direction, ThelabelA, ThelabelB);
     }
 
     /*
@@ -248,10 +232,7 @@ public class GSpanEdge<NodeType, EdgeType> implements
         return nodeA < nodeB;
     }
 
-    public void release(GThreadEnvironment<NodeType, EdgeType> target) {
-        if (target == tenv) {
-            target.push(this);
-        }
+    public void release() {
     }
 
     /**

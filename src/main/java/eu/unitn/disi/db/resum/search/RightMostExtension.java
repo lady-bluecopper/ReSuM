@@ -14,7 +14,6 @@
  */
 package eu.unitn.disi.db.resum.search;
 
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,8 +53,6 @@ import sa.edu.kaust.grami.dataStructures.MultiUserWeightedEdge;
 public class RightMostExtension<NodeType, EdgeType> extends
         GenerationPartialStep<NodeType, EdgeType> {
     
-    protected final GThreadEnvironment<NodeType, EdgeType> tenv;
-
     public static int counter = 0;
     
     private final Map<GSpanEdge<NodeType, EdgeType>, GSpanExtension<NodeType, EdgeType>> children;
@@ -64,12 +61,9 @@ public class RightMostExtension<NodeType, EdgeType> extends
      * creates a new pruning
      *
      * @param next the next step of the generation chain
-     * @param tenv
      */
-    public RightMostExtension(final GenerationPartialStep<NodeType, EdgeType> next,
-            final GThreadEnvironment<NodeType, EdgeType> tenv) {
+    public RightMostExtension(final GenerationPartialStep<NodeType, EdgeType> next) {
         super(next);
-        this.tenv = tenv;
         this.children = new TreeMap<GSpanEdge<NodeType, EdgeType>, GSpanExtension<NodeType, EdgeType>>();
     }
 
@@ -102,16 +96,16 @@ public class RightMostExtension<NodeType, EdgeType> extends
             // create new extension
             HPMutableGraph<NodeType, EdgeType> ng = (HPMutableGraph<NodeType, EdgeType>) code.getHPlistGraph().clone();
             gEdge.addTo(ng);
-            ext = new GSpanExtension<NodeType, EdgeType>(tenv);
+            ext = new GSpanExtension<NodeType, EdgeType>();
             ext.edge = gEdge;
-            ext.frag = new DFSCode<NodeType, EdgeType>(tenv, code.getSortedFreqLabels(), 
+            ext.frag = new DFSCode<NodeType, EdgeType>(code.getSortedFreqLabels(), 
                     code.getSingleGraph(), 
                     Util.clone(code.getNonCandidates())).set((HPListGraph<NodeType, EdgeType>) ng,code.getFirst(), code.getLast(), code.getParents());
             ext.frag = (DFSCode<NodeType, EdgeType>) code.extend(ext);
 
             children.put(gEdge, ext);
         } else {
-            gEdge.release(tenv);
+            gEdge.release();
         }
     }
 
@@ -178,13 +172,13 @@ public class RightMostExtension<NodeType, EdgeType> extends
                 int index = currentPoint.y;
 
                 for (int j = 0; j < freqEdgeLabels.size(); j++) {
-                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>()
                             .set(lastNode, lastNode + 1, sortedFreqLabels.indexOf(theLabelA), 
                                     freqEdgeLabels.get(j).intValue(), index, 1, theLabelA, label);
                     if ((code.getLast().compareTo(gEdge) < 0)) {
                         add(gEdge, code, 0);
                     } else {
-                        gEdge.release(tenv);
+                        gEdge.release();
                     }
                 }
             }
@@ -205,13 +199,13 @@ public class RightMostExtension<NodeType, EdgeType> extends
                 int label = currentPoint.x;
                 int index = currentPoint.y;
                 for (int j = 0; j < freqEdgeLabels.size(); j++) {
-                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>()
                             .set(lastNode, lastNode + 1, sortedFreqLabels.indexOf(theLabelA), 
                                     freqEdgeLabels.get(j).intValue(), index, -1, theLabelA, label);
                     if ((code.getLast().compareTo(gEdge) < 0)) {
                         add(gEdge, code, 0);
                     } else {
-                        gEdge.release(tenv);
+                        gEdge.release();
                     }
                 }
             }
@@ -242,13 +236,13 @@ public class RightMostExtension<NodeType, EdgeType> extends
                     //else create Gedge
                     int theLabelB = candidateVB.getLabel();
                     for (int j = 0; j < freqEdgeLabels.size(); j++) {
-                        final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                        final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>()
                                 .set(lastNode, candidateVB.getID(), sortedFreqLabels.indexOf(theLabelA), 
                                         freqEdgeLabels.get(j).intValue(), sortedFreqLabels.indexOf(theLabelB), 1, theLabelA, theLabelB);
                         if ((code.getLast().compareTo(gEdge) < 0)) {
                             add(gEdge, code, 1);
                         } else {
-                            gEdge.release(tenv);
+                            gEdge.release();
                         }
                     }
                 }
@@ -282,13 +276,13 @@ public class RightMostExtension<NodeType, EdgeType> extends
                     int theLabelB = candidateVB.getLabel();
                     for (int j = 0; j < freqEdgeLabels.size(); j++) {
                         
-                        final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                        final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>()
                                 .set(lastNode, candidateVB.getID(), sortedFreqLabels.indexOf(theLabelA), 
                                         freqEdgeLabels.get(j).intValue(), sortedFreqLabels.indexOf(theLabelB), -1, theLabelA, theLabelB);
                         if ((code.getLast().compareTo(gEdge) < 0)) {
                             add(gEdge, code, 1);
                         } else {
-                            gEdge.release(tenv);
+                            gEdge.release();
                         }
                     }
                 }
@@ -319,7 +313,7 @@ public class RightMostExtension<NodeType, EdgeType> extends
                 int label = currentPoint.x;
                 int index = currentPoint.y;
                 for (int j = 0; j < freqEdgeLabels.size(); j++) {
-                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>()
                             .set(ackNode, lastNode + 1, sortedFreqLabels.indexOf(theLabelA), 
                                     freqEdgeLabels.get(j).intValue(), index, 1, theLabelA, label);
                     add(gEdge, code, 0);
@@ -349,7 +343,7 @@ public class RightMostExtension<NodeType, EdgeType> extends
                 int label = currentPoint.x;
                 int index = currentPoint.y;
                 for (int j = 0; j < freqEdgeLabels.size(); j++) {
-                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>(tenv)
+                    final GSpanEdge<NodeType, EdgeType> gEdge = new GSpanEdge<NodeType, EdgeType>()
                             .set(ackNode, lastNode + 1, sortedFreqLabels.indexOf(theLabelA), 
                                     freqEdgeLabels.get(j).intValue(), index, -1, theLabelA, label);
                     add(gEdge, code, 0);

@@ -16,8 +16,6 @@ package sa.edu.kaust.grami.dataStructures;
 
 import com.koloboke.collect.map.hash.HashIntObjMap;
 import com.koloboke.collect.map.hash.HashIntObjMaps;
-import eu.unitn.disi.db.resum.multithread.GThreadEnvironment;
-import eu.unitn.disi.db.resum.multithread.LocalEnvironment;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,8 +81,6 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         return nonCandidates;
     }
 
-    transient private GThreadEnvironment<NodeType, EdgeType> tenv;
-
     transient private ArrayList<GSpanEdge<NodeType, EdgeType>> parents;
 
     public ArrayList<GSpanEdge<NodeType, EdgeType>> getParents() {
@@ -97,11 +93,8 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         return threadIdx;
     }
 
-    public DFSCode(final GThreadEnvironment<NodeType, EdgeType> tenv,
-            ArrayList<Integer> sortedFreqLabels, Graph singleGraph,
+    public DFSCode(ArrayList<Integer> sortedFreqLabels, Graph singleGraph,
             HashIntObjMap<HashSet<Integer>> nonCands) {
-        this.threadIdx = tenv.threadIdx;
-        this.tenv = tenv;
         this.sortedFreqLabels = sortedFreqLabels;
         this.singleGraph = singleGraph;
         this.nonCandidates = nonCands;
@@ -134,24 +127,13 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         return obj instanceof DFSCode && compareTo((DFSCode<NodeType, EdgeType>) obj) == 0;
     }
 
-    /*
-	 * reinitialize tenv after serialization to another machine
-     */
-    private GThreadEnvironment<NodeType, EdgeType> tenv() {
-        if (tenv == null) {
-            return LocalEnvironment.env(this).getThreadEnv(threadIdx);
-        }
-        return tenv;
-    }
-
     @Override
     public SearchLatticeNode<NodeType, EdgeType> extend(final Extension<NodeType, EdgeType> extension) {
         assert extension instanceof GSpanExtension : "DFSCode.extend(..) is just applicable for GSpanExtensions";
         final GSpanExtension<NodeType, EdgeType> ext = (GSpanExtension<NodeType, EdgeType>) extension;
-        final GThreadEnvironment<NodeType, EdgeType> tenv = tenv();
 
         // clone current DFS-List
-        final GSpanEdge<NodeType, EdgeType> nextFirst = first.clone(tenv);
+        final GSpanEdge<NodeType, EdgeType> nextFirst = first.clone();
         GSpanEdge<NodeType, EdgeType> nextLast = nextFirst;
         final HPGraph<NodeType, EdgeType> g = ext.getFragment().getHPlistGraph();
         final ArrayList<GSpanEdge<NodeType, EdgeType>> nextParents
@@ -164,7 +146,7 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         nextParents.set(nextFirst.getNodeB(), nextFirst);
 
         for (GSpanEdge<NodeType, EdgeType> ack = first.next; ack != null; ack = ack.next) {
-            nextLast.next = ack.clone(tenv);
+            nextLast.next = ack.clone();
             nextLast = nextLast.next;
             if (nextLast.isForward()) {
                 nextParents.set(nextLast.getNodeB(), nextLast);
@@ -176,7 +158,7 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         if (nextLast.isForward()) {
             nextParents.set(nextLast.getNodeB(), nextLast);
         }
-        return new DFSCode<NodeType, EdgeType>(tenv(), sortedFreqLabels, singleGraph, Util.clone(nonCandidates))
+        return new DFSCode<NodeType, EdgeType>(sortedFreqLabels, singleGraph, Util.clone(nonCandidates))
                 .set(ext.getFragment().getHPlistGraph(), nextFirst, nextLast, nextParents);
     }
 
@@ -345,7 +327,7 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
 
             if (usedEdges[edge] == UNUSED) {
                 // build extension for unused edges
-                final MinExtension<NodeType, EdgeType> next = new MinExtension<NodeType, EdgeType>(tenv()).set(nodeA,
+                final MinExtension<NodeType, EdgeType> next = new MinExtension<NodeType, EdgeType>().set(nodeA,
                         usedNodes[gNodeB], sortedFreqLabels.indexOf(thelabelA), edgeLabel,
                         sortedFreqLabels.indexOf(thelabelB), graph.getDirection(edge, gNodeA), edge, gNodeB, thelabelA,
                         thelabelB);
@@ -585,7 +567,7 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         final int[] ackNodes = getIntArray(nc, UNUSED);
         final int[] usedNodes = getIntArray(nc, UNUSED);
         final int[] usedEdges = getIntArray(ec, UNUSED);
-        final MinExtensionSet<NodeType, EdgeType> set = new MinExtensionSet<NodeType, EdgeType>(tenv());
+        final MinExtensionSet<NodeType, EdgeType> set = new MinExtensionSet<NodeType, EdgeType>();
         final boolean ret = isCan(set, ackNodes, usedNodes, usedEdges);
         return ret;
     }
