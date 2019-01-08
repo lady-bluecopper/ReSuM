@@ -147,7 +147,7 @@ public class HPListGraph<NodeType, EdgeType> implements
         edge_nodes_and_direction = new int[edgeSize * 3];
         node_labels = (NodeType[]) new Object[nodeSize];
         edge_labels = (EdgeType[]) new Object[edgeSize];
-        max_edge_weights_map = new double[edgeSize][Settings.structureSize];
+        max_edge_weights_map = new double[edgeSize][Settings.actualNumOfEdgeWeights];
         status = new int[MAXEDGE + 1];
     }
 
@@ -164,11 +164,11 @@ public class HPListGraph<NodeType, EdgeType> implements
                 final int newlength = (int) (RESIZE_SCALE * idx);
                 System.arraycopy(edge_nodes_and_direction, 0, edge_nodes_and_direction = new int[3 * newlength], 0, 3 * length);
                 System.arraycopy(edge_labels, 0, edge_labels = ((EdgeType[]) new Object[newlength]), 0, length);
-                double[][] temp = new double[newlength][Settings.structureSize];
+                double[][] temp = new double[newlength][Settings.actualNumOfEdgeWeights];
                 for (int i = 0; i < length; i++) {
-                    System.arraycopy(max_edge_weights_map[i], 0, temp[i], 0, Settings.structureSize);
+                    System.arraycopy(max_edge_weights_map[i], 0, temp[i], 0, Settings.actualNumOfEdgeWeights);
                 }
-                max_edge_weights_map = new double[newlength][Settings.structureSize];
+                max_edge_weights_map = new double[newlength][Settings.actualNumOfEdgeWeights];
                 max_edge_weights_map = temp;
                 temp = null;
             }
@@ -421,7 +421,7 @@ public class HPListGraph<NodeType, EdgeType> implements
             ret.edge_labels[i] = this.edge_labels[i];// clone??
         }
         for (int i = this.max_edge_weights_map.length - 1; i >= 0; --i) {
-            ret.max_edge_weights_map[i] = new double[Settings.structureSize];
+            ret.max_edge_weights_map[i] = new double[Settings.actualNumOfEdgeWeights];
             System.arraycopy(this.max_edge_weights_map[i], 0,
                     ret.max_edge_weights_map[i], 0,
                     this.max_edge_weights_map[i].length);

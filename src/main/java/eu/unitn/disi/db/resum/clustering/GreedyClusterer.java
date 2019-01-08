@@ -1,5 +1,6 @@
 package eu.unitn.disi.db.resum.clustering;
 
+import com.koloboke.collect.map.hash.HashIntObjMap;
 import eu.unitn.disi.db.resum.distance.Distance;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +24,11 @@ public class GreedyClusterer extends Clusterer {
     // Determines whether it is advantageous to add a node to a cluster
     public double m_thresh = 0.0f;
 
-    public GreedyClusterer(ArrayList<ArrayList<Double>> adjacencyMatrix, Distance distance) {
+    public GreedyClusterer(HashIntObjMap adjacencyMatrix, Distance distance) {
         super(adjacencyMatrix, distance);
     }
 
-    public GreedyClusterer(ArrayList<ArrayList<Double>> adjacencyMatrix, double thresh, Distance distance) {
+    public GreedyClusterer(HashIntObjMap adjacencyMatrix, double thresh, Distance distance) {
         super(adjacencyMatrix, distance);
         m_thresh = thresh;
     }
@@ -78,12 +79,11 @@ public class GreedyClusterer extends Clusterer {
      */
     private double calcGain(int n, ArrayList<Integer> c) {
         double gain = 0;
-        for (int el : c) {
-            double current = distance.distance(featureMap.get(el), featureMap.get(n));
-            if (current > -1) {
-                gain += current;
-            }
-        }
+        gain = c.stream()
+                .map((el) -> distance.distance(featureMap.get(el), featureMap.get(n)))
+                .filter((current) -> (current > -1))
+                .map((current) -> current)
+                .reduce(gain, (accumulator, _item) -> accumulator + _item);
         return gain;
     }
 }

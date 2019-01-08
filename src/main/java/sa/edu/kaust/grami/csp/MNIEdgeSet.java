@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package sa.edu.kaust.grami.csp;
 
 import java.util.Iterator;
@@ -22,7 +17,7 @@ public class MNIEdgeSet {
 
     public MNIEdgeSet(int ID) {
         this.ID = ID;
-        this.edgeSets = new TreeList[Settings.structureSize];
+        this.edgeSets = new TreeList[Settings.actualNumOfEdgeWeights];
         for (int i = 0; i < edgeSets.length; i++) {
             edgeSets[i] = new TreeList<WeightedEdge<Integer, Double, Double>>();
         }

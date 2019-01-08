@@ -45,13 +45,13 @@ public abstract class SearchLatticeNode<NodeType, EdgeType> implements
     protected SearchLatticeNode() {
         this.level = -1;
         this.storeValues = new BitSet();
-        this.storeValues.set(0, Settings.structureSize, true);
+        this.storeValues.set(0, Settings.actualNumOfEdgeWeights, true);
     }
 
     protected SearchLatticeNode(final int level) {
         this.level = level;
         this.storeValues = new BitSet();
-        this.storeValues.set(0, Settings.structureSize, true);
+        this.storeValues.set(0, Settings.actualNumOfEdgeWeights, true);
     }
 
     /**
@@ -123,7 +123,7 @@ public abstract class SearchLatticeNode<NodeType, EdgeType> implements
      */
     public final void store(final boolean store, int index) {
         if (index == -1) {
-            storeValues.set(0, Settings.structureSize, store);
+            storeValues.set(0, Settings.actualNumOfEdgeWeights, store);
         } else {
             storeValues.set(index, store);
         }
@@ -149,4 +149,6 @@ public abstract class SearchLatticeNode<NodeType, EdgeType> implements
     public abstract boolean[] isRelevant();
 
     public abstract HPListGraph<NodeType, EdgeType> getHPlistGraph();
+    
+    public abstract int getSize();
 }

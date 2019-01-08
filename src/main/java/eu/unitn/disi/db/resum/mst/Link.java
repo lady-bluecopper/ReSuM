@@ -50,4 +50,13 @@ public class Link {
         }
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 79 * hash + this.src;
+        hash = 79 * hash + this.dst;
+        hash = 79 * hash + (int) (Double.doubleToLongBits(this.distance) ^ (Double.doubleToLongBits(this.distance) >>> 32));
+        return hash;
+    }
+
 }

@@ -1,6 +1,6 @@
 package sa.edu.kaust.grami.dataStructures;
 
-import eu.unitn.disi.db.resum.utilities.MyPair;
+import eu.unitn.disi.db.resum.utilities.Pair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -102,8 +102,8 @@ public class MultiUserWeightedEdge<NODE, EDGELABEL, MAXWEIGHTS> implements Compa
         }
     }
 
-    public MyPair<NODE, EDGELABEL> getUnweightedEdge() {
-        return new MyPair(this.n, this.l);
+    public Pair<NODE, EDGELABEL> getUnweightedEdge() {
+        return new Pair(this.n, this.l);
     }
 
     public static int getIndexOf(ArrayList<MultiUserWeightedEdge<Integer, Double, double[]>> arr, int src, double label) {

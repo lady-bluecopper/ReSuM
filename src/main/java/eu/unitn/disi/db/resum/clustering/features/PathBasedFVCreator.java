@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.IntStream;
 import sa.edu.kaust.grami.dataStructures.MultiUserWeightedEdge;
 
@@ -19,19 +20,18 @@ import sa.edu.kaust.grami.dataStructures.MultiUserWeightedEdge;
  */
 public class PathBasedFVCreator extends FVCreator {
 
-    ArrayList<MultiUserWeightedEdge<Integer, Double, double[]>> edges;
+    List<MultiUserWeightedEdge<Integer, Double, double[]>> edges;
     // nodeId -> list of edge ids
-    HashIntObjMap<ArrayList<Integer>> neighbors;
+    HashIntObjMap<List<Integer>> neighbors;
 
-    public PathBasedFVCreator() throws IOException {
-        super();
-        loadGraph();
+    public PathBasedFVCreator(HashIntObjMap<double[]> edgeWeights) throws IOException {
+        loadGraph(edgeWeights);
     }
 
-    private void loadGraph() throws FileNotFoundException, IOException {
+    private void loadGraph(HashIntObjMap<double[]> edgeWeights) throws IOException {
         final BufferedReader rows = new BufferedReader(new FileReader(Paths.get(Settings.datasetsFolder, Settings.inputFileName).toFile()));
         edges = new ArrayList<MultiUserWeightedEdge<Integer, Double, double[]>>();
-        neighbors = HashIntObjMaps.<ArrayList<Integer>>newUpdatableMap();
+        neighbors = HashIntObjMaps.newMutableMap();
 
         String line = rows.readLine();
         int counter = 0;
@@ -51,15 +51,14 @@ public class PathBasedFVCreator extends FVCreator {
         rows.close();
     }
 
-    public ArrayList<ArrayList<Double>> createFeatureVectors() {
-        ArrayList<ArrayList<Double>> patternScores = new ArrayList<ArrayList<Double>>(Settings.numberOfFunctions);
-        for (int u = 0; u < Settings.numberOfFunctions; u++) {
-            patternScores.add(u, new ArrayList<Double>());
-        }
+    public HashIntObjMap<double[]> createFeatureVectors() {
+        HashIntObjMap<double[]> patternScores = HashIntObjMaps.newMutableMap();
+        IntStream.range(0, Settings.numberOfEdgeWeights).forEach(u -> patternScores.put(u, new double[10000]));
+
         HashMap<String, Integer> patternIDs = new HashMap<String, Integer>();
         int patternCount = 0;
         for (int nodeA : neighbors.keySet()) {
-            ArrayList<Integer> outEdges = neighbors.get(nodeA);
+            List<Integer> outEdges = neighbors.getOrDefault(nodeA, new ArrayList<>());
             for (int edgeId : outEdges) {
                 MultiUserWeightedEdge<Integer, Double, double[]> edge = edges.get(edgeId);
                 int nodeB = edge.getNodeID();
@@ -67,73 +66,67 @@ public class PathBasedFVCreator extends FVCreator {
                 double[] firstEdgeWeights = edge.getMaxWeights();
                 if (patternIDs.putIfAbsent(pathLabel, patternCount) == null) {
                     patternCount++;
-                    IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(u
-                            -> patternScores.get(u).add(patternIDs.get(pathLabel), 0.));
                 }
                 // compute scores of paths of length 1
-                if (Settings.task < 4) {
-                    IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(user -> {
+                if (Settings.score < 4) {
+                    IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(user -> {
                         if (firstEdgeWeights[user] > Settings.relevance) {
-                            ArrayList<Double> thisUser = patternScores.get(user);
-                            int pID = patternIDs.get(pathLabel);
-                            thisUser.set(pID, thisUser.get(pID) + 1);
+                            double[] thisUser = patternScores.get(user);
+                            thisUser[patternIDs.get(pathLabel)]++;
+                            patternScores.put(user, thisUser);
                         }
                     });
                 } else {
-                    IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(user -> {
-                        ArrayList<Double> thisUser = patternScores.get(user);
-                        int pID = patternIDs.get(pathLabel);
-                        thisUser.set(pID, thisUser.get(pID) + firstEdgeWeights[user]);
+                    IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(user -> {
+                        double[] thisUser = patternScores.get(user);
+                        thisUser[patternIDs.get(pathLabel)] += firstEdgeWeights[user];
+                        patternScores.put(user, thisUser);
                     });
                 }
                 // compute scores of paths of length 2
-                ArrayList<Integer> secondOutEdges = neighbors.get(nodeB);
-                if (secondOutEdges != null) {
-                    for (int secondEdgeId : neighbors.get(nodeB)) {
-                        MultiUserWeightedEdge<Integer, Double, double[]> secondEdge = edges.get(secondEdgeId);
-                        String path2Label = pathLabel + "-" + secondEdge.getEdgeLabel().toString();
-                        double[] secondEdgeWeights = secondEdge.getMaxWeights();
-                        if (patternIDs.putIfAbsent(path2Label, patternCount) == null) {
-                            patternCount++;
-                            IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(u
-                                    -> patternScores.get(u).add(patternIDs.get(path2Label), 0.));
-                        }
-                        switch (Settings.task) {
-                            case 1:
-                                IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(user -> {
-                                    if (firstEdgeWeights[user] > Settings.relevance && secondEdgeWeights[user] > Settings.relevance) {
-                                        ArrayList<Double> thisUser = patternScores.get(user);
-                                        int pID = patternIDs.get(path2Label);
-                                        thisUser.set(pID, thisUser.get(pID) + 1);
-                                    }
-                                });
-                                break;
-                            case 2:
-                                IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(user -> {
-                                    if (firstEdgeWeights[user] > Settings.relevance || secondEdgeWeights[user] > Settings.relevance) {
-                                        ArrayList<Double> thisUser = patternScores.get(user);
-                                        int pID = patternIDs.get(path2Label);
-                                        thisUser.set(pID, thisUser.get(pID) + 1);
-                                    }
-                                });
-                                break;
-                            case 3:
-                                IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(user -> {
-                                    if (firstEdgeWeights[user] + secondEdgeWeights[user] > Settings.relevance) {
-                                        ArrayList<Double> thisUser = patternScores.get(user);
-                                        int pID = patternIDs.get(path2Label);
-                                        thisUser.set(pID, thisUser.get(pID) + 1);
-                                    }
-                                });
-                                break;
-                            case 4:
-                                IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(user -> {
-                                    ArrayList<Double> thisUser = patternScores.get(user);
-                                    int pID = patternIDs.get(path2Label);
-                                    thisUser.set(pID, thisUser.get(pID) + (firstEdgeWeights[user] + secondEdgeWeights[user]) / 2);
-                                });
-                                break;
-                        }
+                List<Integer> secondOutEdges = neighbors.getOrDefault(nodeB, new ArrayList<Integer>());
+                for (int secondEdgeId : secondOutEdges) {
+                    MultiUserWeightedEdge<Integer, Double, double[]> secondEdge = edges.get(secondEdgeId);
+                    String path2Label = pathLabel + "-" + secondEdge.getEdgeLabel().toString();
+                    double[] secondEdgeWeights = secondEdge.getMaxWeights();
+                    if (patternIDs.putIfAbsent(path2Label, patternCount) == null) {
+                        patternCount++;
+                    }
+                    switch (Settings.score) {
+                        case 1:
+                            IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(user -> {
+                                if (firstEdgeWeights[user] > Settings.relevance && secondEdgeWeights[user] > Settings.relevance) {
+                                    double[] thisUser = patternScores.get(user);
+                                    thisUser[patternIDs.get(path2Label)]++;
+                                    patternScores.put(user, thisUser);
+                                }
+                            });
+                            break;
+                        case 2:
+                            IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(user -> {
+                                if (firstEdgeWeights[user] > Settings.relevance || secondEdgeWeights[user] > Settings.relevance) {
+                                    double[] thisUser = patternScores.get(user);
+                                    thisUser[patternIDs.get(path2Label)]++;
+                                    patternScores.put(user, thisUser);
+                                }
+                            });
+                            break;
+                        case 3:
+                            IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(user -> {
+                                if (firstEdgeWeights[user] + secondEdgeWeights[user] > Settings.relevance) {
+                                    double[] thisUser = patternScores.get(user);
+                                    thisUser[patternIDs.get(path2Label)]++;
+                                    patternScores.put(user, thisUser);
+                                }
+                            });
+                            break;
+                        case 4:
+                            IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(user -> {
+                                double[] thisUser = patternScores.get(user);
+                                thisUser[patternIDs.get(path2Label)] += (firstEdgeWeights[user] + secondEdgeWeights[user]) / 2;
+                                patternScores.put(user, thisUser);
+                            });
+                            break;
                     }
                 }
             }

@@ -49,7 +49,7 @@ public class Automorphism<NodeType, EdgeType> {
     public Automorphism(HPListGraph<NodeType, EdgeType> graph) {
         Integer numberOfNodes = graph.getNodeCount();
         result = new Variable[numberOfNodes];
-        resultEdges = (Settings.task < 4 ? null : new MNIEdgeSet[numberOfNodes]);
+        resultEdges = (Settings.score < 4 ? null : new MNIEdgeSet[numberOfNodes]);
         nodes = new HashMap<Integer, GNode>();
 
         Query qry = new Query((HPListGraph<Integer, Double>) graph);
@@ -88,7 +88,7 @@ public class Automorphism<NodeType, EdgeType> {
         df.searchAll();
         resultCounter = df.getResultCounter();
         result = df.getResultVariables();
-        if (Settings.task == 4) {
+        if (Settings.score == 4) {
             resultEdges = df.getResultEdges();
         }
     }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.unitn.disi.db.resum.utilities;
 
 import java.util.ArrayList;
@@ -12,12 +7,12 @@ import java.util.Iterator;
  *
  * @author bluecopper
  */
-public class MyPair<A, B> {
+public class Pair<A, B> {
     
     private A a;
     private B b;
 
-    public MyPair(A a, B b) {
+    public Pair(A a, B b) {
         this.a = a;
         this.b = b;
     }
@@ -38,11 +33,11 @@ public class MyPair<A, B> {
         }
         //actual comparison
         if (this.a instanceof String) {
-            return ((String) this.a).equals((String) ((MyPair) other).getA());
+            return ((String) this.a).equals((String) ((Pair) other).getA());
         } else if (this.a instanceof Integer) {
-            return (((Integer) this.a).intValue() == ((Integer) ((MyPair) other).getA()).intValue());
+            return (((Integer) this.a).intValue() == ((Integer) ((Pair) other).getA()).intValue());
         } else if (this.a instanceof Double) {
-            return (((Double) this.a).equals((Double) ((MyPair) other).getA()));
+            return (((Double) this.a).equals((Double) ((Pair) other).getA()));
         }
         throw new UnsupportedOperationException("Unsupported Type Exception");
     }
@@ -53,15 +48,15 @@ public class MyPair<A, B> {
             return true;
         }
         //actual comparison
-        if (((Integer) this.a).intValue() == ((Integer) ((MyPair) other).getA()).intValue()) {
-            return (((Double) this.b).equals(((Double) ((MyPair) other).getB())));
+        if (((Integer) this.a).intValue() == ((Integer) ((Pair) other).getA()).intValue()) {
+            return (((Double) this.b).equals(((Double) ((Pair) other).getB())));
         }
         return false;
     }
 
-    public static int getIndexOf(ArrayList<MyPair<Integer, Double>> arr, int a) {
+    public static int getIndexOf(ArrayList<Pair<Integer, Double>> arr, int a) {
         int i = 0;
-        Iterator<MyPair<Integer, Double>> itr = arr.iterator();
+        Iterator<Pair<Integer, Double>> itr = arr.iterator();
         while (itr.hasNext()) {
             if (itr.next().getA() == a) {
                 return i;

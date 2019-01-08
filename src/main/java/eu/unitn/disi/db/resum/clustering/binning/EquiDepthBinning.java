@@ -1,14 +1,23 @@
 package eu.unitn.disi.db.resum.clustering.binning;
 
+import com.koloboke.collect.map.hash.HashDoubleIntMap;
+import com.koloboke.collect.map.hash.HashDoubleIntMaps;
 import com.koloboke.collect.map.hash.HashDoubleObjMap;
 import com.koloboke.collect.map.hash.HashDoubleObjMaps;
+import com.koloboke.collect.map.hash.HashIntObjMap;
+import com.koloboke.collect.map.hash.HashIntObjMaps;
 import eu.unitn.disi.db.resum.utilities.Settings;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.commons.math3.util.Precision;
+import sa.edu.kaust.grami.dataStructures.MultiUserWeightedEdge;
 
 /**
  *
@@ -20,93 +29,80 @@ public class EquiDepthBinning extends Binning {
         super(labelsNum);
     }
     
-    public ArrayList<ArrayList<Double>> createFeatureVectors(
-            HashMap<Double, ArrayList<Integer>> edgesByLabel,
-            ArrayList<double[]> edgeWeightsByIndex) {
-        
-        HashDoubleObjMap<BucketList> binningMap = computeBinningMap(edgesByLabel, edgeWeightsByIndex);
-        ArrayList<ArrayList<Double>> featureVectors = new ArrayList<ArrayList<Double>>(Settings.numberOfFunctions);
-        for (int u = 0; u < Settings.numberOfFunctions; u ++) {
-            featureVectors.add(u, new ArrayList<Double>(Collections.nCopies(labelsNum * Settings.bucketsNum, 0.)));
-        }
+    public HashIntObjMap<double[]> createFeatureVectors(HashDoubleObjMap<List<MultiUserWeightedEdge<Integer, Double, double[]>>> edgesByLabel) {
+        HashDoubleObjMap<BucketList> binningMap = computeBinningMap(edgesByLabel);
+        System.out.println("map computed");
+        HashIntObjMap<double[]> featureVectors = HashIntObjMaps.newMutableMap();
+        IntStream.range(0, Settings.numberOfEdgeWeights).forEach(u -> featureVectors.put(u, new double[labelsNum * Settings.bucketsNum]));
         int base = 0;
-        for (Map.Entry e : edgesByLabel.entrySet()) {
-            double edgeLabel = (Double) e.getKey();
-            ArrayList<Integer> edges = (ArrayList<Integer>) e.getValue();
-            BucketList bList = binningMap.get(edgeLabel);
+        for (Entry<Double, List<MultiUserWeightedEdge<Integer, Double, double[]>>> e : edgesByLabel.entrySet()) {
+            BucketList bList = binningMap.get(e.getKey());
             final int fBase = base;
-
-            for (int edgeIndex : edges) {
-                double[] edgeWeights = edgeWeightsByIndex.get(edgeIndex);
-                IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(i -> {
-                    double current = featureVectors.get(i).get(fBase * Settings.bucketsNum + bList.getBucket(edgeWeights[i]));
-                    featureVectors.get(i).set(fBase * Settings.bucketsNum + bList.getBucket(edgeWeights[i]), current + 1);   
-                });
-            }
+            e.getValue().stream().forEach(edge -> 
+                    IntStream.range(0, Settings.numberOfEdgeWeights).forEach(i -> {
+                        double[] newVector = featureVectors.get(i);
+                        newVector[fBase * Settings.bucketsNum + bList.getBucket(edge.getMaxWeights()[i])] += 1;
+                        featureVectors.put(i, newVector);
+                    })
+            );
             base += 1;
         }
+        System.out.println("vectors created");
         return featureVectors;
     }
 
-    protected HashDoubleObjMap<BucketList> computeBinningMap(
-            HashMap<Double, ArrayList<Integer>> edgesByLabel,
-            ArrayList<double[]> edgeWeightsByIndex) {
-
-        HashDoubleObjMap<BucketList> binningMap = HashDoubleObjMaps.<BucketList>newUpdatableMap();
-        for (Map.Entry e : edgesByLabel.entrySet()) {
-            double edgeLabel = (Double) e.getKey();
-            binningMap.put(edgeLabel, computeBucketList(edgeWeightsByIndex, (ArrayList<Integer>) e.getValue()));
-        }
+    protected HashDoubleObjMap<BucketList> computeBinningMap(HashDoubleObjMap<List<MultiUserWeightedEdge<Integer, Double, double[]>>> edgesByLabel) {
+        HashDoubleObjMap<BucketList> binningMap = HashDoubleObjMaps.newMutableMap();
+        edgesByLabel.entrySet().stream().forEach(e -> binningMap.put(e.getKey(), computeBucketList(e.getValue().stream().map(edge -> edge.getMaxWeights()).collect(Collectors.toList()))));
         return binningMap;
     }
     
-    protected BucketList computeBucketList(
-            ArrayList<double[]> edgeWeightsByIndex,
-            ArrayList<Integer> edges) {
-
-        TreeMap<Double, Integer> edgeWeightCount = new TreeMap<Double, Integer>();
-        for (int edgeIndex : edges) {
-            double[] edgeWeights = edgeWeightsByIndex.get(edgeIndex);
-            for (double weight : edgeWeights) {
-                if (!edgeWeightCount.containsKey(weight)) {
-                    edgeWeightCount.put(weight, 1);
-                } else {
-                    edgeWeightCount.put(weight, edgeWeightCount.get(weight) + 1);
-                }
-            }
-        }
+    protected BucketList computeBucketList(List<double[]> edgeWeights) {
+        HashDoubleIntMap edgeWeightsCounts = HashDoubleIntMaps.newMutableMap();
+        edgeWeights.stream().forEach(vec -> {
+            IntStream.range(0, vec.length).forEach(i -> {
+                double thisW = Precision.round(vec[i], 3);
+                edgeWeightsCounts.put(thisW, edgeWeightsCounts.getOrDefault(thisW, 0) + 1);
+            });
+        });
+        List<Double> orderedEdgeWeightList = new ArrayList<>(edgeWeightsCounts.keySet());
+        Collections.sort(orderedEdgeWeightList);
         BucketList buckets = new BucketList(Settings.bucketsNum);
         int adjust = 0;
         int i = 0;
         int currentBuck = 0;
-        double threshold = 0;
-        double avg = (edges.size() * Settings.numberOfFunctions) / Settings.bucketsNum.doubleValue();
-        for (Map.Entry e : edgeWeightCount.entrySet()) {
-            double w = (double) e.getKey();
-            int c = (int) e.getValue();
-            if ((currentBuck + c <= avg + adjust) && (currentBuck >= avg - adjust)) {
-                adjust -= avg - currentBuck - c;
-                buckets.boundaries[i] = w;
+        double threshold = -1;
+        double avg = edgeWeights.size() * Settings.numberOfEdgeWeights * 1.0 / Settings.bucketsNum;
+        for (double w : orderedEdgeWeightList) {
+            int c = edgeWeightsCounts.get(w);
+            if ((currentBuck + c < avg + adjust) || (currentBuck + c < avg)) {
                 threshold = w;
-                currentBuck = 0;
-                i += 1;
-            } else if (currentBuck + c < avg - adjust) {
                 currentBuck += c;
-                threshold = w;
-
             } else {
-                adjust -= avg - currentBuck;
-                buckets.boundaries[i] = threshold;
-                threshold = w;
-                currentBuck = c;
-                i += 1;
+                if (currentBuck >= avg) {
+                    buckets.setBoundary(i, threshold);
+                    adjust -= currentBuck - avg;
+                    currentBuck = c;
+                } else {
+                    buckets.setBoundary(i, w);
+                    adjust -= currentBuck + c - avg;
+                    currentBuck = 0;
+                }
+                threshold = -1;
+                i++;
+                if (i == Settings.bucketsNum) {
+                    break;
+                }
             }
-            if (i == Settings.bucketsNum) {
-                buckets.boundaries[i - 1] = 1;
-                break;
-            }
+        }
+        if (threshold != -1 && i < Settings.bucketsNum - 1) {
+            buckets.setBoundary(i, threshold);
+            i++;
+        }
+        if (i < Settings.bucketsNum) {
+            buckets.setBoundary(i, 1);
+            i++;
         }
         return buckets;
     }
-
 }

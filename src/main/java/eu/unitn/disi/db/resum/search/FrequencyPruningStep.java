@@ -66,8 +66,8 @@ public class FrequencyPruningStep<NodeType, EdgeType> extends
             System.out.println("*");
         }
 
-        if (min.compareTo(freq) <= 0) {
-            if (Settings.task > 1 || node.getStoreValues().cardinality() > 0) {
+        if (min.compareTo(freq) <= 0 && (node.getSize() < Settings.maxSize)) {
+            if (Settings.score > 1 || node.getStoreValues().cardinality() > 0) {
                     callNext(node, extensions);
             } 
         }

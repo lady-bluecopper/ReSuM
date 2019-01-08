@@ -3,13 +3,13 @@ package eu.unitn.disi.db.resum.utilities;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class MyTriplet<A, B, C> {
+public class Triplet<A, B, C> {
 
     private A a;
     private B b;
     private C c;
 
-    public MyTriplet(A a, B b, C c) {
+    public Triplet(A a, B b, C c) {
         this.a = a;
         this.b = b;
         this.c = c;
@@ -34,7 +34,7 @@ public class MyTriplet<A, B, C> {
             return true;
         }
         //actual comparison
-        return (((Integer) this.a).intValue() == ((Integer) ((MyTriplet) other).getA()).intValue());
+        return (((Integer) this.a).intValue() == ((Integer) ((Triplet) other).getA()).intValue());
     }
 
     public boolean actualEquals(Object other) {
@@ -43,18 +43,18 @@ public class MyTriplet<A, B, C> {
             return true;
         }
         //actual comparison
-        if (((Integer) this.a).intValue() == ((Integer) ((MyTriplet) other).getA()).intValue()) {
-            if (((Double) this.b).equals(((Double) ((MyTriplet) other).getB()))) {
-                return (((double[]) this.c).equals(((double[]) ((MyTriplet) other).getC())));
+        if (((Integer) this.a).intValue() == ((Integer) ((Triplet) other).getA()).intValue()) {
+            if (((Double) this.b).equals(((Double) ((Triplet) other).getB()))) {
+                return (((double[]) this.c).equals(((double[]) ((Triplet) other).getC())));
             }
             return false;
         }
         return false;
     }
 
-    public static int getIndexOf(ArrayList<MyTriplet<Integer, Double, double[]>> arr, int a) {
+    public static int getIndexOf(ArrayList<Triplet<Integer, Double, double[]>> arr, int a) {
         int i = 0;
-        Iterator<MyTriplet<Integer, Double, double[]>> itr = arr.iterator();
+        Iterator<Triplet<Integer, Double, double[]>> itr = arr.iterator();
         while (itr.hasNext()) {
             if (itr.next().getA() == a) {
                 return i;

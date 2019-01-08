@@ -120,7 +120,7 @@ public class Decomposer<NodeType, EdgeType> {
                             connectedComp.addNodeIndex(newGraph.getNodeLabel(otherNodeMapping));
                             mapping.add(otherNodeMapping);
                         }
-                        double[] newWeights = new double[Settings.structureSize];
+                        double[] newWeights = new double[Settings.actualNumOfEdgeWeights];
                         Arrays.fill(newWeights, 1.0);
                         connectedComp.addEdgeIndex(currentNodeID, otherNode, (EdgeType) "1", newWeights,
                                 newGraph.getDirection(edge, currentNodeIDmapping));

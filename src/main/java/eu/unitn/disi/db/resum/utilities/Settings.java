@@ -11,30 +11,34 @@ public class Settings {
     public static int MAX_COMPUTATION_TIME = Integer.MAX_VALUE; 
 
     //datasets folder
-    public static String datasetsFolder = "/Users/bluecopper/Desktop/OutputData_ICDM/OutputData_AMAZON/OutputData_WSM/u1/frequency";
+    public static String datasetsFolder = "";
     //output folder
-    public static String outputFolder = "/Users/bluecopper/Desktop/";
+    public static String outputFolder = "";
     //the input filename
-    public static String inputFileName = "freebase-travel.lg";
+    public static String inputFileName = "";
     // graph weights filename
-    public static String weightFileName = "electronics-2-pruned_50.w";
+    public static String weightFileName = "";
+    // num of lines of weight file
+    public static int weightFileSize = 0;
     // real pattern sets
-    public static String patternFileName = "/Users/bluecopper/Desktop/OutputData_ICDM/BS";
+    public static String patternFileName = "";
     //the output filename
     public static String outputFileName = null;
     
     // -- Mining parameters --
-    public static int task = 2;
+    public static int score = 2;
 
     public static double relevance = -1;
 
     public static int frequency = 90;
 
-    public static int structureSize = 50;
+    public static int actualNumOfEdgeWeights = 50;
     
     public static int multipleRuns = 0;
     
     public static int seed = 42;
+    
+    public static int maxSize = 4;
 
     // -- Clustering parameters --
     public static Integer bucketsNum = 25;
@@ -53,27 +57,8 @@ public class Settings {
     
     public static String clusteringType = "bucket";
 
-    // -- Weight Generation Parameters --
     public static int focus = 50;
 
-    public static int edge_focus = 100;
+    public static int numberOfEdgeWeights = 299;
     
-    public static int numberOfFunctions = 299;
-    
-    // -- Multi-threading Parameters
-    public static int splitSize = 4;
-
-    public static int maxSplitDepth = Integer.MAX_VALUE;
-
-    public static int maxSplitCount = Integer.MAX_VALUE;
-    
-    public static int threadCount = 1;
-    
-    // -- Test Accuracy
-    public static String clusteringFileName = "/Users/bluecopper/Desktop/OutputData_ICDM/OutputData_AMAZON/OutputData_MWSM-BUCK300";
-             
-    public static String exactFileName = "/Users/bluecopper/Desktop/OutputData_ICDM/OutputData_AMAZON/OutputData_MWSM";
-    
-    public static String approxFileName = "/Users/bluecopper/Desktop/OutputData_ICDM/OutputData_AMAZON/OutputData_MWSM-BUCK300";
-
 }

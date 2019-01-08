@@ -1,8 +1,8 @@
 package eu.unitn.disi.db.resum.clustering.features;
 
+import com.koloboke.collect.map.hash.HashIntObjMap;
+import com.koloboke.collect.map.hash.HashIntObjMaps;
 import eu.unitn.disi.db.resum.utilities.Settings;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 /**
@@ -10,21 +10,21 @@ import java.util.stream.IntStream;
  * @author bluecopper
  */
 public class FullFVCreator extends FVCreator {
+    
+    HashIntObjMap<double[]> edgeWeights;
 
-    public FullFVCreator() throws IOException {
-        super();
+    public FullFVCreator(HashIntObjMap<double[]> edgeWeights) {
+        this.edgeWeights = edgeWeights;
     }
 
-    public ArrayList<ArrayList<Double>> createFeatureVectors() {
-        ArrayList<ArrayList<Double>> featureVectors = new ArrayList<ArrayList<Double>>(Settings.numberOfFunctions);
-        for (int u = 0; u < Settings.numberOfFunctions; u ++) {
-            featureVectors.add(u, new ArrayList<Double>(edgeWeights.size()));
-        }
-        IntStream.range(0, Settings.numberOfFunctions).parallel().forEach(j -> {
-            ArrayList<Double> currentList = featureVectors.get(j);
-            for (final double[] edgeWeight : edgeWeights) {
-                currentList.add(edgeWeight[j]);
+    public HashIntObjMap<double[]> createFeatureVectors() {
+        HashIntObjMap<double[]> featureVectors = HashIntObjMaps.newMutableMap();
+        IntStream.range(0, Settings.numberOfEdgeWeights).parallel().forEach(u -> {
+            double[] current = new double[edgeWeights.size()];
+            for (int e = 0; e < edgeWeights.size(); e++) {
+                current[e] = edgeWeights.get(e)[u];
             }
+            featureVectors.put(u, current);
         });
         return featureVectors;
     }

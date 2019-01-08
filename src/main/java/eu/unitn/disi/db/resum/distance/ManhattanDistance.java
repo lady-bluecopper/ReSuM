@@ -3,19 +3,15 @@ package eu.unitn.disi.db.resum.distance;
 /**
  *
  * @author bluecopper
- * @param <T>
  */
-public class ManhattanDistance<T> implements Distance<T[]> {
+public class ManhattanDistance implements Distance<double[]> {
 
-    public double distance(T[] first, T[] second) {
+    public double distance(double[] first, double[] second) {
         double dist = 0;
-        if (first[0] instanceof Double) {
-            for (int i = 0; i < first.length; i++) {
-                dist += Math.abs((Double) first[i] - (Double) second[i]);
-            }
-            return dist;
+        for (int i = 0; i < first.length; i++) {
+            dist += Math.abs(first[i] - second[i]);
         }
-        return -1;
+        return dist;
     }
 
 }

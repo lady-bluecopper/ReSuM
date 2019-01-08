@@ -88,7 +88,7 @@ public class GNode {
         if (reachableNodes == null) {
             reachableNodes = new HashMap<Integer, ArrayList<MultiUserWeightedEdge<Integer, Double, double[]>>>();
         }
-        double[] newWeights = new double[Settings.structureSize];
+        double[] newWeights = new double[Settings.actualNumOfEdgeWeights];
         Arrays.fill(newWeights, 1.0);
         
         reachableNodes.putIfAbsent(node.getLabel(), new ArrayList<MultiUserWeightedEdge<Integer, Double, double[]>>());

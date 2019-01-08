@@ -136,8 +136,8 @@ public class AssignmentInstance {
     }
 
     public boolean[] maxSatisfiesALL() {
-        boolean[] relevance = new boolean[Settings.structureSize];
-        for (int e = 0; e < Settings.structureSize; e++) {
+        boolean[] relevance = new boolean[Settings.actualNumOfEdgeWeights];
+        for (int e = 0; e < Settings.actualNumOfEdgeWeights; e++) {
             relevance[e] = true;
         }
         for (MultiUserWeightedEdge<Integer, Double, double[]> edge : edgeAssignments) {
@@ -166,7 +166,7 @@ public class AssignmentInstance {
     }
 
     public boolean[] maxSatisfiesANY() {
-        boolean[] relevance = new boolean[Settings.structureSize];
+        boolean[] relevance = new boolean[Settings.actualNumOfEdgeWeights];
         for (MultiUserWeightedEdge<Integer, Double, double[]> edge : edgeAssignments) {
             if (edge != null) {
                 double[] edgeWeights = edge.getMaxWeights();
@@ -193,8 +193,8 @@ public class AssignmentInstance {
     }
 
     public boolean[] maxSatisfiesSUM() {
-        boolean[] relevance = new boolean[Settings.structureSize];
-        double[] maxSum = new double[Settings.structureSize];
+        boolean[] relevance = new boolean[Settings.actualNumOfEdgeWeights];
+        double[] maxSum = new double[Settings.actualNumOfEdgeWeights];
         for (MultiUserWeightedEdge<Integer, Double, double[]> edge : edgeAssignments) {
             if (edge != null) {
                 double[] edgeWeights = edge.getMaxWeights();
@@ -205,7 +205,7 @@ public class AssignmentInstance {
                         });
             }
         }
-        IntStream.range(0, Settings.structureSize)
+        IntStream.range(0, Settings.actualNumOfEdgeWeights)
                 .parallel()
                 .forEach(index -> {
                     relevance[index] = (maxSum[index] > Settings.relevance);

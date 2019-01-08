@@ -63,7 +63,7 @@ You can use ReSuM either by using the script *run.sh* included in this package o
 
 ### Using the Script
 
-1. **Input**: the name of the graph file must end with the extension *.lg*, while the name of the weight file must follow the pattern <*graph*_*file*>_<*dispersion>.w*, where *dispersion* indicates the percentage of graph edges weighted for each edge label. Both files must be in the same folder. 
+1. **Input**: the name of the graph file must end with the extension *.lg*, while the name of the weight file must follow the pattern <*graph*_*file*>_<*dispersion>.w*, where *dispersion* indicates the percentage of graph edges weighted for each edge label. Both files must be in the same folder named with the same name of the graph (i.e. if the graph is called *graph.lg*, the folder must be called *graph*). 
 
 2. **Settings**: the value of each parameter used by ReSuM must be set in the configuration file *config.cfg*. In particular:
  * General settings:
@@ -74,8 +74,10 @@ You can use ReSuM either by using the script *run.sh* included in this package o
     * funcs: space-separated list of numbers of weight sets to test. The code will run once for each number of sets.
     * disp: dispersion value, as indicated in the name of the weight file.
     * multirun: number of runs for each configuration of the parameters.
+    * maxSize: threshold on the size of the patterns to mine. A pattern will not be expanded if its size reaches this threshold.
+    * weightFileSize: number of lines of the file containing the weights of the graph.
  * Dataset-related settings:
-    * Dataset names: filenames of the datasets to test.
+    * Dataset names: file names of the datasets to test.
     * Default values: comma-separated list of default values and information about the graph, i.e., default frequency threshold, default relevance threshold, is-directed, num of buckets to use in the clustering step, has-labels-on-the-nodes
     * Frequencies: comma-separated list of frequency thresholds to test
     * Experimental flags: test to perform among (1) test many frequency thresholds, (2) test many relevance thresholds, (3) test many scoring functions, (4) compute clustering, (5) run ReSuM-approximate.
@@ -104,10 +106,12 @@ You can use ReSuM either by using the script *run.sh* included in this package o
 
 1. **Run ReSuM**:
 
-        java -cp ReSuM.jar:lib/* sa.edu.kaust.grami.dijkstra.Main caching=true automorphism=true filename=<dataset_name> weightFile=<weight_file> disp=<dispersion> freq=<frequency_threshold> rel=<relevance_threshold> multipleRuns=<num_runs> task=<scoring_function> functions=<num_weights_per_edge> structureSize=<num_weights_per_edge>  ignoreLabels=<true_if_graph_has_no_node_labels> datasetFolder=<input_folder> outputFolder=<output_folder>
+        java -cp ReSuM.jar:lib/* sa.edu.kaust.grami.dijkstra.Main caching=true automorphism=true inputFileName=<dataset_name> weightFileName=<weight_file> disp=<dispersion> freq=<frequency_threshold> rel=<relevance_threshold> multipleRuns=<num_runs> score=<scoring_function> numberOfEdgeWeights=<num_weights_per_edge> actualNumOfEdgeWeights=<num_weights_per_edge>  ignoreLabels=<true_if_graph_has_no_node_labels> maxSize=<max_size_of_patterns_to_mine> weightFileSize=<num_lines_of_weight_file> datasetsFolder=<input_folder> outputFolder=<output_folder>
 			
 
 2. **Run ReSuM-approximate**:
 
-        java -cp ReSuM.jar:lib/* eu.unitn.disi.db.resum.clustering.KGraphGen filename=<dataset_name> weightFile=<weight_file> buckets=<num_buckets> disp=<dispersion> clusteringType=<bucket_or_full> functions=<num_weights_per_edge> structureSize=<num_clusters> smart=<initialization_is_not_random> ignoreLabels=<true_if_graph_has_no_node_labels> datasetFolder=<input_folder> outputFolder=<output_folder>
-        java -cp ReSuM.jar:lib/* sa.edu.kaust.grami.dijkstra.Main caching=true automorphism=true filename=<dataset_name> weightFile=<dataset_name>_<dispersion>_<num_clusters>.cw disp=<dispersion> freq=<frequency_threshold> rel=<relevance_threshold> task=<scoring_function> multipleRuns=<num_runs> functions=<num_weights_per_edge> structureSize=<num_clusters> clusteringType=<bucket_or_full> buckets=<num_buckets> ignoreLabels=<true_if_graph_has_no_node_labels> datasetFolder=<input_folder> outputFolder=<output_folder>
+        java -cp ReSuM.jar:lib/* eu.unitn.disi.db.resum.clustering.KGraphGen inputFileName=<dataset_name> weightFileName=<weight_file> buckets=<num_buckets> disp=<dispersion> clusteringType=<bucket_or_full> numberOfEdgeWeights=<num_weights_per_edge> actualNumOfEdgeWeights=<num_clusters> smart=<initialization_is_not_random> ignoreLabels=<true_if_graph_has_no_node_labels> maxSize=<max_size_of_patterns_to_mine> weightFileSize=<num_lines_of_weight_file> datasetsFolder=<input_folder> outputFolder=<output_folder>
+        java -cp ReSuM.jar:lib/* sa.edu.kaust.grami.dijkstra.Main caching=true automorphism=true inputFileName=<dataset_name> weightFileName=<dataset_name>_<dispersion>_<num_clusters>.cw disp=<dispersion> freq=<frequency_threshold> rel=<relevance_threshold> score=<scoring_function> multipleRuns=<num_runs> numberOfEdgeWeights=<num_weights_per_edge> actualNumOfEdgeWeights=<num_clusters> clusteringType=<bucket_or_full> buckets=<num_buckets> ignoreLabels=<true_if_graph_has_no_node_labels> maxSize=<max_size_of_patterns_to_mine> weightFileSize=<num_lines_of_weight_file> datasetsFolder=<input_folder> outputFolder=<output_folder>
+
+Note that if the graph is undirected, you must replace *ReSuM.jar* with *ReSuM-UND.jar*. Do not replace it in the cluster generation.

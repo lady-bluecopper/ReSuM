@@ -1,6 +1,6 @@
 package eu.unitn.disi.db.resum.distance;
 
-import eu.unitn.disi.db.resum.utilities.MyTriplet;
+import eu.unitn.disi.db.resum.utilities.Triplet;
 import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 import java.util.Collection;
 
@@ -18,13 +18,13 @@ public class SetEditDistance implements Distance<Collection<String>> {
 
     public double distance(Collection<String> realP, Collection<String> approxP) {
         double sumED = 0;
-        for (String p : realP) {
-            sumED += findMINDistancePerPattern(p, approxP);
-        }
+        sumED = realP.stream()
+                .map(p -> findMINDistancePerPattern(p, approxP))
+                .reduce(sumED, (accumulator, _item) -> accumulator + _item);
         return sumED / realP.size();
     }
     
-    public MyTriplet<Double, Double, Double> distanceWithPrints(Collection<String> realP, Collection<String> approxP) {
+    public Triplet<Double, Double, Double> distanceWithPrints(Collection<String> realP, Collection<String> approxP) {
         double sumED = 0;
         double minED = Double.MAX_VALUE;
         double maxED = 0;
@@ -34,7 +34,7 @@ public class SetEditDistance implements Distance<Collection<String>> {
             minED = Math.min(minED, currentED);
             maxED = Math.max(maxED, currentED);
         }
-        return new MyTriplet(sumED / realP.size(), minED, maxED);
+        return new Triplet(sumED / realP.size(), minED, maxED);
     }
 
     public double computeAVGDistancePerUsers(Collection<String>[] realSets, Collection<String>[] approxSets) {
@@ -52,32 +52,32 @@ public class SetEditDistance implements Distance<Collection<String>> {
     public double computeAVGDistancePerUsers(Collection<String> first, Collection<String>[] second) {
         double sumDistances = 0;
         double realUsers = 0;
-        for (int i = 0; i < second.length; i++) {
-            if (second[i].size() > 0) {
+        for (Collection<String> second1 : second) {
+            if (second1.size() > 0) {
                 realUsers ++;
-                sumDistances += distance(first, second[i]);
+                sumDistances += distance(first, second1);
             }
         }
         return (realUsers > 0) ? sumDistances / realUsers : 0;
     }
     
-    public MyTriplet<Double, Double, Double> computeAVGDistancePerUsersWithPrints(Collection<String> first, Collection<String>[] second) {
+    public Triplet<Double, Double, Double> computeAVGDistancePerUsersWithPrints(Collection<String> first, Collection<String>[] second) {
         double sumDistances = 0;
         double minDistance = Double.MAX_VALUE;
         double maxDistance = 0;
         double realUsers = 0;
-        for (int i = 0; i < second.length; i++) {
-            if (second[i] != null) {
-            if (second[i].size() > 0) {
-                realUsers ++;
-                MyTriplet<Double, Double, Double> currentDistances = distanceWithPrints(first, second[i]);
-                sumDistances += currentDistances.getA();
-                minDistance = Math.min(minDistance, currentDistances.getB());
-                maxDistance = Math.max(maxDistance, currentDistances.getC());
-            }
+        for (Collection<String> second1 : second) {
+            if (second1 != null) {
+                if (second1.size() > 0) {
+                    realUsers ++;
+                    Triplet<Double, Double, Double> currentDistances = distanceWithPrints(first, second1);
+                    sumDistances += currentDistances.getA();
+                    minDistance = Math.min(minDistance, currentDistances.getB());
+                    maxDistance = Math.max(maxDistance, currentDistances.getC());
+                }
             }
         }
-        return new MyTriplet<Double, Double, Double> ((realUsers > 0) ? sumDistances / realUsers : 0, minDistance, maxDistance);
+        return new Triplet<Double, Double, Double> ((realUsers > 0) ? sumDistances / realUsers : 0, minDistance, maxDistance);
     }
 
     public double findMINDistancePerPattern(String p, Collection<String> pSet) {

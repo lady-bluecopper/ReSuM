@@ -1,0 +1,271 @@
+package sa.edu.kaust.grami.und.main;
+
+import java.io.FileWriter;
+
+import eu.unitn.disi.db.resum.und.utilities.CommandLineParser;
+import eu.unitn.disi.db.resum.und.utilities.Settings;
+import eu.unitn.disi.db.resum.und.utilities.StopWatch;
+import eu.unitn.disi.db.resum.und.utilities.Util;
+import sa.edu.kaust.grami.und.dataStructures.DFScodeSerializer;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.TreeSet;
+import sa.edu.kaust.grami.und.dataStructures.HPListGraph;
+import sa.edu.kaust.grami.und.search.Algorithm;
+import sa.edu.kaust.grami.und.search.RecursiveStrategy;
+
+public class Main {
+    
+    public static StopWatch watch;
+
+    public static void main(String[] args) throws Exception {
+        //parse the command line arguments
+        CommandLineParser.parse(args);
+        
+        HashMap<Integer, ArrayList<double[]>> maxEdgeWeights = loadWeights();
+        for (Entry<Integer,ArrayList<double[]>> e : maxEdgeWeights.entrySet()) {
+            run(e.getKey(), e.getValue());
+        }
+    }
+    
+    public final static <NodeType, EdgeType> void run(int u, ArrayList<double[]> weights)
+            throws InstantiationException, IllegalAccessException,
+            ClassNotFoundException, ParseException, IOException {
+
+        ArrayList<HPListGraph<NodeType, EdgeType>> result = null;
+        ArrayList<BitSet> retMask = null;
+        watch = new StopWatch();
+        
+        System.out.printf("Finding patterns in %s, "
+                    + "freq=%d, "
+                    + "rel=%f, "
+                    + "task=%d, "
+                    + "num_functions=%d, "
+                    + "num_edge_weights_considered=%d, "
+                    + "user=%d\n",
+                    Settings.inputFileName,
+                    Settings.frequency,
+                    Settings.relevance,
+                    Settings.score,
+                    Settings.numberOfEdgeWeights,
+                    Settings.actualNumOfEdgeWeights,
+                    u);
+        
+        try {
+            if (Settings.inputFileName == null) {
+                System.out.println("You have to specify a filename");
+                System.exit(1);
+            } else {
+                watch.start();
+                Algorithm<NodeType, EdgeType> algo = new Algorithm<NodeType, EdgeType>(weights);
+                algo.initialize();
+                System.out.print("Starting Recursive Strategy...\n");
+                RecursiveStrategy<NodeType, EdgeType> rs = new RecursiveStrategy<NodeType, EdgeType>();
+                result = (ArrayList<HPListGraph<NodeType, EdgeType>>) rs.search(algo);
+                retMask = rs.getRetMask();
+            }
+            watch.stop();
+            System.out.printf("Found %d patterns, in %dms\n", result.size(), watch.getElapsedTime());
+            // Write Patterns 
+            writeResults(result, retMask, u);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+                
+    public static <NodeType, EdgeType> void writeResults(
+            ArrayList<HPListGraph<NodeType, EdgeType>> result,
+            ArrayList<BitSet> retMask,
+            ArrayList<double[]> scores,
+            int u) throws IOException {
+
+        FileWriter fw = null;
+        try {
+            String fName;
+            if (Settings.outputFileName == null) {
+                fName = "statistics.csv";
+            } else {
+                fName = Settings.outputFileName;
+            }
+            Path path = Paths.get(Settings.outputFolder, fName);
+            fw = new FileWriter(path.toFile(), true);
+            if (Settings.numberOfEdgeWeights > Settings.actualNumOfEdgeWeights) {
+                fw.write(String.format("%s\t%s\t%f\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%s\t%d\n",
+                        Settings.inputFileName,
+                        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()),
+                        watch.getElapsedTime() / 1000.0D,
+                        result.size(),
+                        Settings.frequency,
+                        Settings.relevance,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
+                        Settings.clusteringType.equals("bucket") ? Settings.bucketsNum : 0,
+                        Settings.clusteringType,
+                        Settings.focus));
+            } else {
+                fw.write(String.format("%s\t%s\t%f\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%s\t%d\n",
+                        Settings.inputFileName,
+                        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()),
+                        watch.getElapsedTime() / 1000.0D,
+                        result.size(),
+                        Settings.frequency,
+                        Settings.relevance,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
+                        0, "",
+                        Settings.focus));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fw != null) {
+                fw.close();
+            }
+        }
+        try {
+            String fName = "Patterns_" + Settings.inputFileName + "_F" + Settings.frequency + "R"
+                    + Settings.relevance + "T" + Settings.score + "C" + Settings.actualNumOfEdgeWeights + "RUN" + u + ".p";
+            Path path = Paths.get(Settings.outputFolder, new String[]{fName});
+            FileWriter fwP = new FileWriter(path.toFile());
+            for (int i = 0; i < result.size(); i++) {
+                fwP.write(DFScodeSerializer.compactSerialization(result.get(i)) + "\n");
+                fwP.write((retMask.get(i)).toString() + "\n");
+                fwP.write(Util.toPrint(scores.get(i)) + "\n");
+            }
+            fwP.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static <NodeType, EdgeType> void writeResults(
+            ArrayList<HPListGraph<NodeType, EdgeType>> result,
+            ArrayList<BitSet> retMask,
+            int u) throws IOException {
+
+        FileWriter fw = null;
+        try {
+            String fName;
+            if (Settings.outputFileName == null) {
+                fName = "statistics.csv";
+            } else {
+                fName = Settings.outputFileName;
+            }
+            Path path = Paths.get(Settings.outputFolder, fName);
+            fw = new FileWriter(path.toFile(), true);
+            if (Settings.numberOfEdgeWeights > Settings.actualNumOfEdgeWeights) {
+                fw.write(String.format("%s\t%s\t%f\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%s\t%d\n",
+                        Settings.inputFileName,
+                        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()),
+                        watch.getElapsedTime() / 1000.0D,
+                        result.size(),
+                        Settings.frequency,
+                        Settings.relevance,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
+                        Settings.clusteringType.equals("bucket") ? Settings.bucketsNum : 0,
+                        Settings.clusteringType,
+                        Settings.focus));
+            } else {
+                fw.write(String.format("%s\t%s\t%f\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%s\t%d\n",
+                        Settings.inputFileName,
+                        new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()),
+                        watch.getElapsedTime() / 1000.0D,
+                        result.size(),
+                        Settings.frequency,
+                        Settings.relevance,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
+                        0, "",
+                        Settings.focus));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fw != null) {
+                fw.close();
+            }
+        }
+        try {
+            String fName = "Patterns_" + Settings.inputFileName + "_F" + Settings.frequency + "R"
+                    + Settings.relevance + "T" + Settings.score + "C" + Settings.actualNumOfEdgeWeights + "RUN" + u + ".p";
+            Path path = Paths.get(Settings.outputFolder, new String[]{fName});
+            FileWriter fwP = new FileWriter(path.toFile());
+            for (int i = 0; i < result.size(); i++) {
+                fwP.write(DFScodeSerializer.compactSerialization(result.get(i)) + "\n");
+                fwP.write((retMask.get(i)).toString() + "\n");
+            }
+            fwP.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
+    public static HashMap<Integer, ArrayList<double[]>> loadWeights() throws Exception {
+        final BufferedReader rows = new BufferedReader(
+                new FileReader(Paths.get(Settings.datasetsFolder, Settings.weightFileName).toFile()));
+
+        HashMap<Integer, ArrayList<double[]>> maxEdgeWeights = new HashMap<Integer, ArrayList<double[]>>();
+        ArrayList<double[]> currWeightList;
+        int counter = 0;
+        String line = rows.readLine();
+
+        if (Settings.multipleRuns > 1) {
+            Random generator = new Random(Settings.seed);
+            TreeSet<Integer> users = new TreeSet<Integer>();
+            while (users.size() < Settings.multipleRuns) {
+                users.add(generator.nextInt(Settings.weightFileSize));
+            }
+            while (users.size() > 0) {
+                int currUser = users.pollFirst();
+                while (counter != currUser) {
+                    line = rows.readLine();
+                    counter++;
+                }
+                String[] currWeights = line.split("\\s+");
+                currWeightList = new ArrayList();
+                for (int e = 0; e < currWeights.length; e++) {
+                    currWeightList.add(e, new double[]{Double.parseDouble(currWeights[e])});
+                }
+                maxEdgeWeights.put(currUser, currWeightList);
+            }
+
+        } else {
+            currWeightList = new ArrayList();
+            if (line != null) {
+                int numEdges = line.split("\\s+").length;
+                for (int e = 0; e < numEdges; e++) {
+                    currWeightList.add(e, new double[Settings.actualNumOfEdgeWeights]);
+                }
+            }
+            while (line != null && counter < Settings.actualNumOfEdgeWeights) {
+                final String[] parts = line.split("\\s+");
+                for (int e = 0; e < parts.length; e++) {
+                    currWeightList.get(e)[counter] = Double.parseDouble(parts[e]);
+                }
+                line = rows.readLine();
+                counter++;
+            }
+            maxEdgeWeights.put(0, currWeightList);
+        }
+        rows.close();
+        return maxEdgeWeights;
+    }
+
+}

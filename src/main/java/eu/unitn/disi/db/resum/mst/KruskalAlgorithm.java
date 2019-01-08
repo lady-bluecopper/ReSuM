@@ -1,5 +1,6 @@
 package eu.unitn.disi.db.resum.mst;
 
+import com.koloboke.collect.map.hash.HashIntObjMap;
 import eu.unitn.disi.db.resum.distance.Distance;
 import java.util.*;
 
@@ -73,17 +74,13 @@ public class KruskalAlgorithm {
                 taken ++;
             }
         }
-        // Print MST
-        for (Link e : MSTree) {
-            System.out.println(e.src + " -- " + e.dst + " == " + e.distance);
-        }
     }
     
     public ArrayList<Link> getMST() {
         return MSTree;
     }
     
-    private static ArrayList<Link> createEdgeSet(ArrayList<ArrayList<Double>> patternSets, int usersNum, Distance distance) {
+    private static ArrayList<Link> createEdgeSet(HashIntObjMap patternSets, int usersNum, Distance distance) {
         ArrayList<Link> edges = new ArrayList<Link>();
         for (int i = 0; i < usersNum - 1; i++) {
             for (int j = i + 1; j < usersNum; j++) {
@@ -95,7 +92,7 @@ public class KruskalAlgorithm {
         return edges;
     }
     
-    public static KruskalAlgorithm istantiateFromPatternSets(ArrayList<ArrayList<Double>> patternSet, int usersNum, Distance distance) {
+    public static KruskalAlgorithm istantiateFromPatternSets(HashIntObjMap patternSet, int usersNum, Distance distance) {
         return new KruskalAlgorithm(createEdgeSet(patternSet, usersNum, distance), usersNum);
     }
     

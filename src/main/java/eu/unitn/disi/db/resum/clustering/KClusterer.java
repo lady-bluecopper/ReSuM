@@ -1,8 +1,8 @@
 package eu.unitn.disi.db.resum.clustering;
 
+import com.koloboke.collect.map.hash.HashIntObjMap;
+import com.koloboke.collect.map.hash.HashIntObjMaps;
 import eu.unitn.disi.db.resum.distance.Distance;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -13,62 +13,62 @@ import java.util.stream.IntStream;
  */
 public abstract class KClusterer extends Clusterer {
 
-    protected ArrayList<ArrayList<Double>> centroids;
+    protected HashIntObjMap<double[]> centroids;
 
-    protected KClusterer(ArrayList<ArrayList<Double>> relevanceMap, Distance distance) {
+    protected KClusterer(HashIntObjMap<double[]> relevanceMap, Distance distance) {
         super(relevanceMap, distance);
     }
 
-    protected KClusterer(ArrayList<ArrayList<Double>> relevanceMap, int featuresNum, Distance distance) {
+    protected KClusterer(HashIntObjMap<double[]> relevanceMap, int featuresNum, Distance distance) {
         super(relevanceMap, featuresNum, distance);
     }
 
     @Override
     public int[] findRandomClustering(int numClusters) {
         int[] clusters = new int[usersNum];
-        ArrayList<ArrayList<Double>> clusterCentroids = randomSeeding(numClusters);
+        HashIntObjMap clusterCentroids = randomSeeding(numClusters);
         IntStream.range(0, usersNum).parallel().forEach(index
                 -> clusters[index] = findSimCluster(index, clusterCentroids));
         centroids = clusterCentroids;
         return clusters;
     }
 
-    protected ArrayList<ArrayList<Double>> randomSeeding(int clustersNum) {
-        ArrayList<ArrayList<Double>> clusterCentroids = new ArrayList<ArrayList<Double>>(clustersNum);
+    protected HashIntObjMap<double[]> randomSeeding(int clustersNum) {
+        HashIntObjMap<double[]> clusterCentroids = HashIntObjMaps.newMutableMap();
         HashSet<Integer> seeds = new HashSet<Integer>();
         Random rand = new Random(42);
 
         int firstSeed = rand.nextInt(usersNum);
         seeds.add(firstSeed);
-        clusterCentroids.add(0, featureMap.get(firstSeed));
+        clusterCentroids.put(0, featureMap.get(firstSeed));
 
         while (seeds.size() < clustersNum) {
             int newCentroid = rand.nextInt(usersNum);
             if (seeds.add(newCentroid)) {
-                clusterCentroids.add(seeds.size() - 1, featureMap.get(newCentroid));
+                clusterCentroids.put(seeds.size() - 1, featureMap.get(newCentroid));
             }
         }
         return clusterCentroids;
     }
 
-    protected ArrayList<ArrayList<Double>> smartSeeding(int clustersNum) {
-        ArrayList<ArrayList<Double>> clusterCentroids = new ArrayList<ArrayList<Double>>(clustersNum);
+    protected HashIntObjMap<double[]> smartSeeding(int clustersNum) {
+        HashIntObjMap<double[]> clusterCentroids = HashIntObjMaps.newMutableMap();
         HashSet<Integer> seeds = new HashSet<Integer>();
 
         int firstSeed = new Random().nextInt(usersNum);
         seeds.add(firstSeed);
-        clusterCentroids.add(0, featureMap.get(firstSeed));
+        clusterCentroids.put(0, featureMap.get(firstSeed));
 
         while (seeds.size() < clustersNum) {
             int currSeed = selectWithProbability(computeNormalizedMinDistances(seeds));
             if (seeds.add(currSeed)) {
-                clusterCentroids.add(seeds.size() - 1, featureMap.get(currSeed));
+                clusterCentroids.put(seeds.size() - 1, featureMap.get(currSeed));
             }
         }
         return clusterCentroids;
     }
-
-    protected int findSimCluster(int instance, final ArrayList<ArrayList<Double>> clusterCentroids) {
+ 
+    protected int findSimCluster(int instance, final HashIntObjMap<double[]> clusterCentroids) {
         double maxSim = -1;
         int bestCluster = - 1;
         for (int i = 0; i < clusterCentroids.size(); i++) {
@@ -81,31 +81,28 @@ public abstract class KClusterer extends Clusterer {
         return bestCluster;
     }
 
-    protected ArrayList<ArrayList<Double>> findCentroids(int[] clustering, int clustersNum) {
-        ArrayList<ArrayList<Double>> clusterCentroids = new ArrayList<ArrayList<Double>>(clustersNum);
-        for (int c = 0; c < clustersNum; c++) {
-            clusterCentroids.add(c, new ArrayList<Double>(Collections.nCopies(featuresNum, 0.)));
-        }
+    protected HashIntObjMap<double[]> findCentroids(int[] clustering, int clustersNum) {
+        HashIntObjMap<double[]> clusterCentroids = HashIntObjMaps.newMutableMap();
+        IntStream.range(0, clustersNum).forEach(c -> clusterCentroids.put(c, new double[featuresNum]));
         int[] clusterSizes = new int[clustersNum];
         int i, j;
         for (i = 0; i < usersNum; i++) {
             int cIdx = clustering[i];
             clusterSizes[cIdx]++;
             for (j = 0; j < featuresNum; j++) {
-                Double a = featureMap.get(i).get(j);
-                Double b = clusterCentroids.get(cIdx).get(j);
-                clusterCentroids.get(cIdx).set(j, a + b);
+                double[] curr = clusterCentroids.get(cIdx);
+                curr[j] += featureMap.get(i)[j];
+                clusterCentroids.put(j, curr);
             }
         }
         IntStream.range(0, clustersNum).parallel().forEach(index
-                -> normalize(clusterCentroids.get(index), clusterSizes[index]));
+                -> clusterCentroids.put(index, normalize(clusterCentroids.get(index), clusterSizes[index])));
         return clusterCentroids;
     }
 
-    protected void normalize(ArrayList<Double> vector, int size) {
-        vector.stream().forEach((el) -> {
-            el /= size;
-        });
+    protected double[] normalize(double[] vector, int size) {
+        IntStream.range(0, vector.length).forEach(el -> vector[el] /= size);
+        return vector;
     }
 
     protected int selectWithProbability(double[] P) {
@@ -136,5 +133,15 @@ public abstract class KClusterer extends Clusterer {
         IntStream.range(0, usersNum).parallel().forEach(index -> D[index] /= sqSumf);
         return D;
     }
+    
+    public HashIntObjMap<double[]> getCentroids() {
+        return centroids;
+    }
+    
+    public void updateCentroid(int index, double[] newCentroid) {
+        centroids.put(index, newCentroid);
+    }
+    
+    public abstract int[] recomputeClustering(int clustersNum);
 
 }

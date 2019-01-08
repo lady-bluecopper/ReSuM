@@ -1,12 +1,13 @@
 package eu.unitn.disi.db.resum.clustering;
 
+import com.koloboke.collect.map.hash.HashIntObjMap;
 import eu.unitn.disi.db.resum.distance.Distance;
 import eu.unitn.disi.db.resum.distance.JaccardSimilarity;
 import eu.unitn.disi.db.resum.mst.DistinctSet;
 import eu.unitn.disi.db.resum.mst.Link;
 import eu.unitn.disi.db.resum.mst.LinkComparator;
 import eu.unitn.disi.db.resum.mst.KruskalAlgorithm;
-import eu.unitn.disi.db.resum.utilities.MyPair;
+import eu.unitn.disi.db.resum.utilities.Pair;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,18 +30,18 @@ public class MSTClusterer extends Clusterer {
     private double step;
     
 
-    public MSTClusterer(ArrayList<ArrayList<Double>> patternSets, int patternsNum, Distance distance) {
+    public MSTClusterer(HashIntObjMap patternSets, int patternsNum, Distance distance) {
         this(patternSets, patternsNum, distance, 200, 1);
     }
     
-    public MSTClusterer(ArrayList<ArrayList<Double>> patternSets, int patternsNum, Distance distance, double alpha, double step) {
+    public MSTClusterer(HashIntObjMap patternSets, int patternsNum, Distance distance, double alpha, double step) {
         super(patternSets, patternsNum, distance);
         this.alpha = alpha;
         this.step = step;
         this.edgeSet = createInitialEdgeSet();
     }
 
-    public MyPair<int[], Integer> findClusteringWithAlpha(double thisAlpha) {
+    public Pair<int[], Integer> findClusteringWithAlpha(double thisAlpha) {
         // initialization
         DistinctSet temp = new DistinctSet();
         HashMap<Integer, Integer> clustered = new HashMap<Integer, Integer>();
@@ -92,15 +93,13 @@ public class MSTClusterer extends Clusterer {
         }
         int[] clusterMapping = new int[usersNum];
         if (numClusters > 1) {
-            for (int k : clustered.keySet()) {
-                clusterMapping[k] = clustered.get(k);
-            }
+            clustered.keySet().stream().forEach(k -> clusterMapping[k] = clustered.get(k));
         } else {
             for (int k = 0; k < usersNum; k++) {
                 clusterMapping[k] = 0;
             }
         }
-        return new MyPair<int[], Integer>(clusterMapping, numClusters);
+        return new Pair<int[], Integer>(clusterMapping, numClusters);
     }
     
     public int[] findClustering_BIS(int clustersNum) {
@@ -140,9 +139,7 @@ public class MSTClusterer extends Clusterer {
         }
         int[] clusterMapping = new int[usersNum];
         if (clustersNum > 1) {
-            for (int n : clustered.keySet()) {
-                clusterMapping[n] = clustered.get(n);
-            }
+            clustered.keySet().stream().forEach(n -> clusterMapping[n] = clustered.get(n));
         } else {
             for (k = 0; k < usersNum; k++) {
                 clusterMapping[k] = 0;
@@ -195,9 +192,7 @@ public class MSTClusterer extends Clusterer {
         }
         int[] clusterMapping = new int[usersNum];
         if (clustersNum > 1) {
-            for (int k : clustered.keySet()) {
-                clusterMapping[k] = clustered.get(k);
-            }
+            clustered.keySet().stream().forEach(k -> clusterMapping[k] = clustered.get(k));
         } else {
             for (int k = 0; k < usersNum; k++) {
                 clusterMapping[k] = 0;
@@ -215,17 +210,14 @@ public class MSTClusterer extends Clusterer {
         int bestC = -1;
 
         while (!stop) {
-            System.out.println("Starting Iteration: " + alpha);
-            MyPair<int[], Integer> currentClustering = findClusteringWithAlpha(alpha);
+            Pair<int[], Integer> currentClustering = findClusteringWithAlpha(alpha);
             int[] clusterMapping = currentClustering.getA();
             double currQual = qualityMeasure.quality(clusterMapping, currentClustering.getB());
-            System.out.println("Current Quality: " + currQual);
             if (currQual >= maxQual) {
                 clustering.add(clusterMapping);
                 maxQual = currQual;
                 bestC = clustering.indexOf(clusterMapping);
             }
-            System.out.println("CLUSTERS: " + currentClustering.getB() + " USERS: " + usersNum);
             if (currentClustering.getB() >= usersNum) {
                 stop = true;
             }

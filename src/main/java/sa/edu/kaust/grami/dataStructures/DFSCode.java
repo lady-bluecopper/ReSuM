@@ -1,17 +1,3 @@
-/**
- * created May 16, 2006
- *
- * @by Marc Woerlein (woerlein@informatik.uni-erlangen.de)
- *
- * Copyright 2006 Marc Woerlein
- *
- * This file is part of parsemis.
- *
- * Licence:
- *  LGPL: http://www.gnu.org/licenses/lgpl.html
- *   EPL: http://www.eclipse.org/org/documents/epl-v10.php
- *   See the LICENSE file in the project's top-level directory for details.
- */
 package sa.edu.kaust.grami.dataStructures;
 
 import com.koloboke.collect.map.hash.HashIntObjMap;
@@ -98,8 +84,8 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
         this.sortedFreqLabels = sortedFreqLabels;
         this.singleGraph = singleGraph;
         this.nonCandidates = nonCands;
-        this.isRelevant = new boolean[Settings.structureSize];
-        this.scores = new double[Settings.structureSize];
+        this.isRelevant = new boolean[Settings.actualNumOfEdgeWeights];
+        this.scores = new double[Settings.actualNumOfEdgeWeights];
     }
 
     public int compareTo(final DFSCode<NodeType, EdgeType> arg0) {
@@ -213,7 +199,7 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
 
                 int freq = df.getFrequency();
 
-                if (Settings.task < 4) {
+                if (Settings.score < 4) {
                     isRelevant = isPatternRelevant(df.getMaxFrequencies(), Settings.frequency);
                     scores = df.getMaxFrequencies();
                 } else {
@@ -276,7 +262,7 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
 
                 int freq = df.getFrequency();
 
-                if (Settings.task < 4) {
+                if (Settings.score < 4) {
                     isRelevant = isPatternRelevant(df.getMaxFrequencies(), Settings.frequency);
                     scores = df.getMaxFrequencies();
                 } else {
@@ -622,8 +608,8 @@ public class DFSCode<NodeType, EdgeType> extends SearchLatticeNode<NodeType, Edg
     public HPListGraph<NodeType, EdgeType> getHPlistGraph() {
         return me;
     }
-
-    public int getPatternSize() {
+    
+    public int getSize() {
         return me.getEdgeCount();
     }
 

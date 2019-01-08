@@ -11,8 +11,8 @@ echo -e '\n\n'
 
 # Loading configurations for experiments
 echo '>> Loading config file config.cfg'
-source config2.cfg
-cat config2.cfg
+source config.cfg
+cat config.cfg
 
 unset datasets
 declare -A datasets
@@ -48,10 +48,16 @@ do
 	# Parse default values
 	defaults=(`echo $default|tr "," "\n"`)
 	experiments=(`echo $flag|tr "," "\n"`)
+	jar=${ReSuM_jar}
 
+	if [[ ${defaults[2]} == "false" ]]; then
+		jar=${ReSuM_U_jar}
+	fi
 
 	echo ">> Processing dataset ${dataset} with default values (${defaults[@]})"
 	echo ">> Experiment flags ${experiments[@]}"
+
+	if 
 
 	for num_users in ${funcs[*]}
 	do
@@ -71,9 +77,9 @@ do
 				for task in ${tasks[*]}
 				do
 					echo "Running command ..."
-					echo "$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp freq=$freq rel=${defaults[1]} multipleRuns=$multirun task=$task functions=${num_users} structureSize=${num_users} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUT"
+					echo "$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp freq=$freq rel=${defaults[1]} multipleRuns=$multirun maxSize=$maxSize score=$task numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_users} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUT"
 					echo "---- `date`"
-					$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp freq=$freq rel=${defaults[1]} multipleRuns=$multirun task=$task functions=${num_users} structureSize=${num_users} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUT
+					$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp freq=$freq rel=${defaults[1]} multipleRuns=$multirun maxSize=$maxSize score=$task numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_users} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUT
 				done
 			done
 		fi
@@ -91,9 +97,9 @@ do
 				for task in ${tasks[*]}
 				do
 					echo "Running command ..."
-					echo "$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=$rel multipleRuns=$multirun task=$task functions=${num_users} structureSize=${num_users} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUT"
+					echo "$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=$rel multipleRuns=$multirun maxSize=$maxSize score=$task numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_users} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUT"
 					echo "---- `date`"
-					$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=$rel multipleRuns=$multirun task=$task functions=${num_users} structureSize=${num_users} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUT
+					$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=$rel multipleRuns=$multirun maxSize=$maxSize score=$task numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_users} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUT
 				done
 			done
 		fi
@@ -109,9 +115,9 @@ do
 			for task in ${tasks[*]}
 			do
 				echo "Running command ..."
-				echo "$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=${defaults[1]} multipleRuns=$multirun task=$task functions=${num_users} structureSize=${num_users} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUT"
+				echo "$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=${defaults[1]} multipleRuns=$multirun maxSize=$maxSize score=$task numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_users} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUT"
 				echo "---- `date`"
-				$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=${defaults[1]} multipleRuns=$multirun task=$task functions=${num_users} structureSize=${num_users} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUT
+				$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp freq=${defaults[0]} rel=${defaults[1]} multipleRuns=$multirun maxSize=$maxSize score=$task numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_users} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUT
 			done
 		fi
 		# Clustering - Preprocessing step
@@ -133,9 +139,9 @@ do
 					mkdir -p $OUTPUTFOLDER
 
 					echo "Running command ..."
-					echo "$JVM $clustering_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp random=$random clusteringType=$clustType functions=${num_users} structureSize=${num_clusters} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_C${num_clusters}_T${task}.log"
+					echo "$JVM $clustering_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp random=$random clusteringType=$clustType numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_C${num_clusters}_T${task}.log"
 					echo "---- `date`"
-					$JVM $clustering_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp random=$random clusteringType=$clustType functions=${num_users} structureSize=${num_clusters} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_C${num_clusters}_T$task.log
+					$JVM $clustering_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp random=$random clusteringType=$clustType numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_C${num_clusters}_T$task.log
 
 					mv ${input_data}/${dataset}/${dataset}_${disp}_${num_clusters}.cw $OUTPUTFOLDER/
 					mv ${input_data}/${dataset}/${dataset}_${disp}_${num_clusters}.cl $OUTPUTFOLDER/
@@ -152,18 +158,18 @@ do
 					mkdir -p $TASKSUBFOLDER
 
 					echo "Running command ..."
-					echo "$JVM $clustering_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp patternFile=$PATTERNFILE/Patterns_${dataset}.lg_F${defaults[0]}R${defaults[1]}T${task}C${num_users}RUN0.p functions=${num_users} structureSize=${num_clusters} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUTAP}/clustering_${dataset}_C${num_clusters}_POST_T${task}.log"
+					echo "$JVM $clustering_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp patternFileName=$PATTERNFILE/Patterns_${dataset}.lg_F${defaults[0]}R${defaults[1]}T${task}C${num_users}RUN0.p numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUTAP}/clustering_${dataset}_C${num_clusters}_POST_T${task}.log"
 					echo "---- `date`"
-					$JVM $clustering_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w disp=$disp patternFile=$PATTERNFILE/Patterns_${dataset}.lg_F${defaults[0]}R${defaults[1]}T${task}C${num_users}RUN0.p random=$random clusteringType=$clustType functions=${num_users} structureSize=${num_clusters} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_C${num_clusters}_POST_T$task.log
+					$JVM $clustering_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w disp=$disp patternFileName=$PATTERNFILE/Patterns_${dataset}.lg_F${defaults[0]}R${defaults[1]}T${task}C${num_users}RUN0.p random=$random clusteringType=$clustType numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_C${num_clusters}_POST_T$task.log
 
 					mv ${input_data}/${dataset}/${dataset}_${disp}_${num_clusters}.cw $TASKSUBFOLDER/
 					mv ${input_data}/${dataset}/${dataset}_${disp}_${num_clusters}.cl $TASKSUBFOLDER/
 				done
 			else
 				echo "Running command ..."
-				echo "$JVM $clustering_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w buckets=${defaults[3]} disp=$disp random=$random clusteringType=$clustType functions=${num_users} structureSize=$num_clusters smart=$smart ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_B${defaults[3]}_C${num_clusters}.log"
+				echo "$JVM $clustering_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w bucketsNum=${defaults[3]} disp=$disp random=$random clusteringType=$clustType numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=$num_clusters smart=$smart ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_B${defaults[3]}_C${num_clusters}.log"
 				echo "---- `date`"
-				$JVM $clustering_jar filename=${dataset}.lg weightFile=${dataset}_$disp.w buckets=${defaults[3]} disp=$disp random=$random clusteringType=$clustType functions=${num_users} structureSize=$num_clusters smart=$smart ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_B${defaults[3]}_C${num_clusters}.log
+				$JVM $clustering_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_$disp.w bucketsNum=${defaults[3]} disp=$disp random=$random clusteringType=$clustType numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=$num_clusters smart=$smart ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=${input_data}/${dataset} | tee ${OUTPUT}/clustering_${dataset}_B${defaults[3]}_C${num_clusters}.log
 			fi
 		fi
 		# Approximate
@@ -180,22 +186,22 @@ do
 			do
 				if [[ $clustType == "path" ]] ; then
 					echo "Running command ..."
-					echo "$JVM $ReSuM_jar filename=${dataset}.lg weightFile=path/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} task=$task multipleRuns=$multirun functions=${num_users} structureSize=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX"
+					echo "$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=path/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} maxSize=$maxSize score=$task multipleRuns=$multirun numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX"
 					echo "---- `date`"
-					$JVM $ReSuM_jar filename=${dataset}.lg weightFile=path/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} task=$task multipleRuns=$multirun functions=${num_users} structureSize=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX
+					$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=path/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} maxSize=$maxSize score=$task multipleRuns=$multirun numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX
 				elif [[ $clustType == "aposteriori" ]] ; then
 					OUTPUTAXAP="$output_data/u${num_users}/approx/aposteriori"
 					mkdir -p $OUTPUTAXAP
 
 					echo "Running command ..."
-					echo "$JVM $ReSuM_jar filename=${dataset}.lg weightFile=aposteriori/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} task=$task multipleRuns=$multirun functions=${num_users} structureSize=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUTAXAP"
+					echo "$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=aposteriori/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} maxSize=$maxSize score=$task multipleRuns=$multirun numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUTAXAP"
 					echo "---- `date`"
-					$JVM $ReSuM_jar filename=${dataset}.lg weightFile=aposteriori/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} task=$task multipleRuns=$multirun functions=${num_users} structureSize=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUTAXAP
+					$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=aposteriori/T${task}/${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} maxSize=$maxSize score=$task multipleRuns=$multirun numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} clusteringType=$clustType ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUTAXAP
 				else
 					echo "Running command ..."
-					echo "$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} task=$task multipleRuns=$multirun functions=${num_users} structureSize=${num_clusters} clusteringType=$clustType buckets=${defaults[3]} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX"
+					echo "$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} maxSize=$maxSize score=$task multipleRuns=$multirun numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} clusteringType=$clustType bucketsNum=${defaults[3]} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX"
 					echo "---- `date`"
-					$JVM $ReSuM_jar filename=${dataset}.lg weightFile=${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} task=$task multipleRuns=$multirun functions=${num_users} structureSize=${num_clusters} clusteringType=$clustType buckets=${defaults[3]} ignoreLabels=${defaults[4]} datasetFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX
+					$JVM $ReSuM_jar inputFileName=${dataset}.lg weightFileSize=$weightFileSize weightFileName=${dataset}_${disp}_${num_clusters}.cw disp=${disp} freq=${defaults[0]} rel=${defaults[1]} maxSize=$maxSize score=$task multipleRuns=$multirun numberOfEdgeWeights=${num_users} actualNumOfEdgeWeights=${num_clusters} clusteringType=$clustType bucketsNum=${defaults[3]} ignoreLabels=${defaults[4]} datasetsFolder=${input_data}/${dataset} outputFolder=$OUTPUTAX
 				fi
 			done
 		fi

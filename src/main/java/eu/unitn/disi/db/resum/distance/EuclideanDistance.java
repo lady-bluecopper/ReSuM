@@ -17,5 +17,9 @@ public class EuclideanDistance<T> implements Distance<T[]> {
         }
         return -1;
     }
+    
+    public double similarity(T[] first, T[] second) {
+        return 1 / (1 + distance(first, second));
+    }
 
 }

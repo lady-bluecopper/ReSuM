@@ -1,21 +1,3 @@
-/**
- * Copyright 2014 Mohammed Elseidy, Ehab Abdelhamid
- *
- * This file is part of Grami.
- *
- * Grami is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * Grami is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Grami.  If not, see <http://www.gnu.org/licenses/>.
- */
 package sa.edu.kaust.grami.dijkstra;
 
 import eu.unitn.disi.db.resum.search.Algorithm;
@@ -96,9 +78,9 @@ public class Main {
                     Settings.inputFileName,
                     Settings.frequency,
                     Settings.relevance,
-                    Settings.task,
-                    Settings.numberOfFunctions,
-                    Settings.structureSize,
+                    Settings.score,
+                    Settings.numberOfEdgeWeights,
+                    Settings.actualNumOfEdgeWeights,
                     u);
             watch.stop();
             System.out.printf("Found %d patterns, in %dms\n", result.size(), watch.getElapsedTime());
@@ -126,7 +108,7 @@ public class Main {
             }
             Path path = Paths.get(Settings.outputFolder, fName);
             fw = new FileWriter(path.toFile(), true);
-            if (Settings.numberOfFunctions > Settings.structureSize) {
+            if (Settings.numberOfEdgeWeights > Settings.actualNumOfEdgeWeights) {
                 fw.write(String.format("%s\t%s\t%f\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%s\t%d\n",
                         Settings.inputFileName,
                         new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()),
@@ -134,9 +116,9 @@ public class Main {
                         result.size(),
                         Settings.frequency,
                         Settings.relevance,
-                        Settings.task,
-                        Settings.numberOfFunctions,
-                        Settings.structureSize,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
                         Settings.clusteringType.equals("bucket") ? Settings.bucketsNum : 0,
                         Settings.clusteringType,
                         Settings.focus));
@@ -148,9 +130,9 @@ public class Main {
                         result.size(),
                         Settings.frequency,
                         Settings.relevance,
-                        Settings.task,
-                        Settings.numberOfFunctions,
-                        Settings.structureSize,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
                         0, "",
                         Settings.focus));
             }
@@ -163,7 +145,7 @@ public class Main {
         }
         try {
             String fName = "Patterns_" + Settings.inputFileName + "_F" + Settings.frequency + "R"
-                    + Settings.relevance + "T" + Settings.task + "C" + Settings.structureSize + "RUN" + u + ".p";
+                    + Settings.relevance + "T" + Settings.score + "C" + Settings.actualNumOfEdgeWeights + "RUN" + u + ".p";
             Path path = Paths.get(Settings.outputFolder, new String[]{fName});
             FileWriter fwP = new FileWriter(path.toFile());
             for (int i = 0; i < result.size(); i++) {
@@ -193,7 +175,7 @@ public class Main {
             }
             Path path = Paths.get(Settings.outputFolder, fName);
             fw = new FileWriter(path.toFile(), true);
-            if (Settings.numberOfFunctions > Settings.structureSize) {
+            if (Settings.numberOfEdgeWeights > Settings.actualNumOfEdgeWeights) {
                 fw.write(String.format("%s\t%s\t%f\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%s\t%d\n",
                         Settings.inputFileName,
                         new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()),
@@ -201,9 +183,9 @@ public class Main {
                         result.size(),
                         Settings.frequency,
                         Settings.relevance,
-                        Settings.task,
-                        Settings.numberOfFunctions,
-                        Settings.structureSize,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
                         Settings.clusteringType.equals("bucket") ? Settings.bucketsNum : 0,
                         Settings.clusteringType,
                         Settings.focus));
@@ -215,9 +197,9 @@ public class Main {
                         result.size(),
                         Settings.frequency,
                         Settings.relevance,
-                        Settings.task,
-                        Settings.numberOfFunctions,
-                        Settings.structureSize,
+                        Settings.score,
+                        Settings.numberOfEdgeWeights,
+                        Settings.actualNumOfEdgeWeights,
                         0, "",
                         Settings.focus));
             }
@@ -230,7 +212,7 @@ public class Main {
         }
         try {
             String fName = "Patterns_" + Settings.inputFileName + "_F" + Settings.frequency + "R"
-                    + Settings.relevance + "T" + Settings.task + "C" + Settings.structureSize + "RUN" + u + ".p";
+                    + Settings.relevance + "T" + Settings.score + "C" + Settings.actualNumOfEdgeWeights + "RUN" + u + ".p";
             Path path = Paths.get(Settings.outputFolder, new String[]{fName});
             FileWriter fwP = new FileWriter(path.toFile());
             for (int i = 0; i < result.size(); i++) {
@@ -261,7 +243,7 @@ public class Main {
                 Random generator = new Random(Settings.seed);
                 TreeSet<Integer> users = new TreeSet<Integer>();
                 while (users.size() < Settings.multipleRuns) {
-                    users.add(generator.nextInt(50000));
+                    users.add(generator.nextInt(Settings.weightFileSize));
                 }
                 while (users.size() > 0) {
                     int currUser = users.pollFirst();
@@ -282,10 +264,10 @@ public class Main {
                 if (line != null) {
                     int numEdges = line.split("\\s+").length;
                     for (int e = 0; e < numEdges; e++) {
-                        currWeightList.add(e, new double[Settings.structureSize]);
+                        currWeightList.add(e, new double[Settings.actualNumOfEdgeWeights]);
                     }
                 }
-                while (line != null && counter < Settings.structureSize) {
+                while (line != null && counter < Settings.actualNumOfEdgeWeights) {
                     final String[] parts = line.split("\\s+");
                     for (int e = 0; e < parts.length; e++) {
                         currWeightList.get(e)[counter] = Double.parseDouble(parts[e]);

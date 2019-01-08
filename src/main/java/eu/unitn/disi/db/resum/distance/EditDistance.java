@@ -1,7 +1,5 @@
 package eu.unitn.disi.db.resum.distance;
 
-import eu.unitn.disi.db.resum.utilities.StopWatch;
-
 /**
  *
  * @author bluecopper
@@ -43,15 +41,5 @@ public class EditDistance {
     public static double normalizedWagnerFischerEditDistance(String s1, String s2) {
         return wagnerFischerEditDistance(s1, s2) / (double) s1.length();
     }
-
-    public static void main(String[] args) {
-        String s1 = "ciaonvilvbfdajvbkfjvbdfjkvbfjkbvkjvbkjsbvjksf";
-        String s2 = "cisdsnldknlkdskldsndlkandklandlksandlksandlkasndlasksbvjksf";
-        StopWatch w1 = new StopWatch();
-        w1.start();
-        System.out.println(EditDistance.wagnerFischerEditDistance(s1, s2) / (double) s1.length());
-        w1.stop();
-        System.out.println(w1.getElapsedTimeSecs());
-   }
 
 }

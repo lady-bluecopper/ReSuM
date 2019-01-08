@@ -72,19 +72,19 @@ public class DFSSearch {
         visitedVariables = new HashSet<Integer>();
         sOrder = new SearchOrder(variables.length);
         result = new Variable[variables.length];
-        resultEdgeSet = (Settings.task < 4 ? null : new MNIEdgeSet[variables.length]);
-        AVGScores = new double[Settings.structureSize];
-        maxSupporters = new ArrayList<HashSet<Integer>[]>(Settings.task < 4 ? variables.length : 1);
+        resultEdgeSet = (Settings.score < 4 ? null : new MNIEdgeSet[variables.length]);
+        AVGScores = new double[Settings.actualNumOfEdgeWeights];
+        maxSupporters = new ArrayList<HashSet<Integer>[]>(Settings.score < 4 ? variables.length : 1);
 
         for (int i = 0; i < variables.length; i++) {
             HashMap<Integer, GNode> list = new HashMap<Integer, GNode>();
             result[i] = new Variable(variables[i].getID(), variables[i].getLabel(), list,
                     variables[i].getDistanceConstrainedWith(),
                     variables[i].getDistanceConstrainedBy());
-            if (Settings.task < 4) {
-                maxSupporters.add(i, new HashSet[Settings.structureSize]);
+            if (Settings.score < 4) {
+                maxSupporters.add(i, new HashSet[Settings.actualNumOfEdgeWeights]);
                 final int z = i;
-                IntStream.range(0, Settings.structureSize)
+                IntStream.range(0, Settings.actualNumOfEdgeWeights)
                         .parallel()
                         .forEach(index -> {
                             maxSupporters.get(z)[index] = new HashSet<Integer>();
@@ -104,19 +104,19 @@ public class DFSSearch {
         visitedVariables = new HashSet<Integer>();
         sOrder = new SearchOrder(variables.length);
         result = new Variable[variables.length];
-        resultEdgeSet = (Settings.task < 4 ? null : new MNIEdgeSet[variables.length]);
-        AVGScores = new double[Settings.structureSize];
-        maxSupporters = new ArrayList<HashSet<Integer>[]>(Settings.task < 4 ? variables.length : 1);
+        resultEdgeSet = (Settings.score < 4 ? null : new MNIEdgeSet[variables.length]);
+        AVGScores = new double[Settings.actualNumOfEdgeWeights];
+        maxSupporters = new ArrayList<HashSet<Integer>[]>(Settings.score < 4 ? variables.length : 1);
 
         for (int i = 0; i < variables.length; i++) {
             HashMap<Integer, GNode> list = new HashMap<Integer, GNode>();
             result[i] = new Variable(variables[i].getID(), variables[i].getLabel(), list,
                     variables[i].getDistanceConstrainedWith(),
                     variables[i].getDistanceConstrainedBy());
-            if (Settings.task < 4) {
-                maxSupporters.add(i, new HashSet[Settings.structureSize]);
+            if (Settings.score < 4) {
+                maxSupporters.add(i, new HashSet[Settings.actualNumOfEdgeWeights]);
                 final int z = i;
-                IntStream.range(0, Settings.structureSize)
+                IntStream.range(0, Settings.actualNumOfEdgeWeights)
                         .parallel()
                         .forEach(index -> {
                             maxSupporters.get(z)[index] = new HashSet<Integer>();
@@ -268,9 +268,9 @@ public class DFSSearch {
                     search = false;
                     variables[i].setList((HashMap<Integer, GNode>) variables[preIndex].getList().clone());
                     result[i].setList((HashMap<Integer, GNode>) result[preIndex].getList().clone());
-                    if (Settings.task < 4) {
+                    if (Settings.score < 4) {
                         final int z = i;
-                        IntStream.range(0, Settings.structureSize)
+                        IntStream.range(0, Settings.actualNumOfEdgeWeights)
                                 .parallel()
                                 .forEach(index -> {
                                     maxSupporters.get(z)[index] = (HashSet<Integer>) maxSupporters.get(preIndex)[index].clone();
@@ -339,7 +339,7 @@ public class DFSSearch {
                     // solution found
                     if (value == -1) {
                         final boolean[] maxSupporting;
-                        switch (Settings.task) {
+                        switch (Settings.score) {
                             case 1:
                                 maxSupporting = instance.maxSatisfiesALL();
                                 break;
@@ -350,7 +350,7 @@ public class DFSSearch {
                                 maxSupporting = instance.maxSatisfiesSUM();
                                 break;
                             default:
-                                maxSupporting = new boolean[Settings.structureSize];
+                                maxSupporting = new boolean[Settings.actualNumOfEdgeWeights];
                                 break;
                         }
                         // instance Found
@@ -362,8 +362,8 @@ public class DFSSearch {
                                     if (!result[nodeIndex].getList().containsKey(assignedNode.getID())) {
                                         result[nodeIndex].getList().put(assignedNode.getID(), assignedNode);
                                     }
-                                    if (Settings.task < 4) {
-                                        IntStream.range(0, Settings.structureSize)
+                                    if (Settings.score < 4) {
+                                        IntStream.range(0, Settings.actualNumOfEdgeWeights)
                                                 .parallel()
                                                 .forEach(idx -> {
                                                     if (maxSupporting[idx]) {
@@ -381,9 +381,9 @@ public class DFSSearch {
                                 if (!result[j].getList().containsKey(assignedNode.getID())) {
                                     result[j].getList().put(assignedNode.getID(), assignedNode);
                                 }
-                                if (Settings.task < 4) {
+                                if (Settings.score < 4) {
                                     final int z = j;
-                                    IntStream.range(0, Settings.structureSize)
+                                    IntStream.range(0, Settings.actualNumOfEdgeWeights)
                                             .parallel()
                                             .forEach(idx -> {
                                                 if (maxSupporting[idx]) {
@@ -571,8 +571,8 @@ public class DFSSearch {
     }
 
     public double[] getMaxFrequencies() {
-        double[] minFreqs = new double[Settings.structureSize];
-        IntStream.range(0, Settings.structureSize)
+        double[] minFreqs = new double[Settings.actualNumOfEdgeWeights];
+        IntStream.range(0, Settings.actualNumOfEdgeWeights)
                 .parallel()
                 .forEach(idx -> {
                     minFreqs[idx] = maxSupporters.get(0)[idx].size();
@@ -584,10 +584,10 @@ public class DFSSearch {
     }
 
     public double[] computeAVGScore() {
-        double[] scores = new double[Settings.structureSize];
+        double[] scores = new double[Settings.actualNumOfEdgeWeights];
         int k = getFrequency();
         if (k > 0) {
-            IntStream.range(0, Settings.structureSize)
+            IntStream.range(0, Settings.actualNumOfEdgeWeights)
                     .parallel()
                     .forEach(idx -> {
                         double[] edgeWeights;
@@ -702,7 +702,7 @@ public class DFSSearch {
                 if (!result[i].getList().containsKey(nodeInstance.getID())) {
                     result[i].getList().put(nodeInstance.getID(), nodeInstance);
                 }
-                if (Settings.task == 4) {
+                if (Settings.score == 4) {
                     if (instance.getEdgeAssignment(i) != null) {
                         resultEdgeSet[i].addEdge(instance.getEdgeAssignment(i));
                     }

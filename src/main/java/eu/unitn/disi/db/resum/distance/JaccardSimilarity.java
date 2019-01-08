@@ -2,7 +2,6 @@ package eu.unitn.disi.db.resum.distance;
 
 import eu.unitn.disi.db.resum.utilities.Util;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  *

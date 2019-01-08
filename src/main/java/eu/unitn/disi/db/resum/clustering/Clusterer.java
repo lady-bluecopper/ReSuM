@@ -1,11 +1,11 @@
 package eu.unitn.disi.db.resum.clustering;
 
+import com.koloboke.collect.map.hash.HashIntObjMap;
 import eu.unitn.disi.db.resum.clustering.quality.DunnIndex;
 import eu.unitn.disi.db.resum.clustering.quality.QualityMeasure;
 import eu.unitn.disi.db.resum.clustering.quality.SilhouetteCoefficient;
 import eu.unitn.disi.db.resum.distance.Distance;
 import eu.unitn.disi.db.resum.utilities.Settings;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
  */
 public abstract class Clusterer {
     
-    protected ArrayList<ArrayList<Double>> featureMap;
+    protected HashIntObjMap<double[]> featureMap;
     
     protected final int usersNum;
     
@@ -26,17 +26,17 @@ public abstract class Clusterer {
     protected final QualityMeasure qualityMeasure;
     
     
-    protected Clusterer(ArrayList<ArrayList<Double>> relevanceMap, Distance distance) {
-        this.featureMap = relevanceMap;
-        this.usersNum = Settings.numberOfFunctions;
-        this.featuresNum = relevanceMap.get(0).size();
+    protected Clusterer(HashIntObjMap<double[]> featureMap, Distance distance) {
+        this.featureMap = featureMap;
+        this.usersNum = Settings.numberOfEdgeWeights;
+        this.featuresNum = (featureMap.get(0)).length;
         this.distance = distance;
         this.qualityMeasure = new SilhouetteCoefficient(createAdjacencyMatrix());
     }
     
-    protected Clusterer(ArrayList<ArrayList<Double>> patternSets, int patternsNum, Distance distance) {
+    protected Clusterer(HashIntObjMap<double[]> patternSets, int patternsNum, Distance distance) {
         this.featureMap = patternSets;
-        this.usersNum = Settings.numberOfFunctions;
+        this.usersNum = Settings.numberOfEdgeWeights;
         this.featuresNum = patternsNum;
         this.distance = distance;
         this.qualityMeasure = new DunnIndex(createAdjacencyMatrix());
@@ -77,9 +77,9 @@ public abstract class Clusterer {
     }
     
     protected Double[][] createAdjacencyMatrix() {
-        Double[][] adjacencyMatrix = new Double[Settings.numberOfFunctions][Settings.numberOfFunctions];
-        IntStream.range(0, Settings.numberOfFunctions - 1).parallel().forEach(index -> {
-            IntStream.range(index + 1, Settings.numberOfFunctions).parallel().forEach(index2 -> {
+        Double[][] adjacencyMatrix = new Double[Settings.numberOfEdgeWeights][Settings.numberOfEdgeWeights];
+        IntStream.range(0, Settings.numberOfEdgeWeights - 1).parallel().forEach(index -> {
+            IntStream.range(index + 1, Settings.numberOfEdgeWeights).parallel().forEach(index2 -> {
                 double dist = distance.distance(featureMap.get(index), featureMap.get(index2));
                 adjacencyMatrix[index][index2] = dist;
                 
@@ -93,5 +93,17 @@ public abstract class Clusterer {
     }
     
     public abstract int[] findClustering(int clustersNum);
+    
+    public void updateFeatureMap(double[] newVector) {
+        featureMap.put(featureMap.size(), newVector);
+    }
+    
+    public HashIntObjMap<double[]> getFeatureMap() {
+        return featureMap;
+    }
+    
+    public Distance getDistMeasure() {
+        return distance;
+    }
     
 }

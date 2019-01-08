@@ -36,7 +36,7 @@ public class ConnectedComponent {
         this.indexA = indexA;
         this.indexB = indexB;
         this.edgeLabel = edgeLabel;
-        this.edgeWeights = new double[Settings.structureSize];
+        this.edgeWeights = new double[Settings.actualNumOfEdgeWeights];
         Arrays.fill(this.edgeWeights, 1.0);
     }
 
